@@ -7,31 +7,40 @@ app = Flask(__name__, static_folder='.')
 
 DATABASE_PATH = os.environ.get('DATABASE_PATH', '/data/leaderboard.db')
 
+
 def get_db():
     db = sqlite3.connect(DATABASE_PATH)
     db.row_factory = sqlite3.Row
     return db
 
-def init_db():
-    os.makedirs(os.path.dirname(DATABASE_PATH), exist_ok=True)
-    db = get_db()
-    db.execute('''
-        CREATE TABLE IF NOT EXISTS leaderboard (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            display_name TEXT NOT NULL,
-            score INTEGER NOT NULL,
-            pct INTEGER NOT NULL,
-            correct INTEGER NOT NULL,
-            streak INTEGER NOT NULL,
-            date TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    db.commit()
-    db.close()
-    print(f"Database initialized at {DATABASE_PATH}")
 
-# GET leaderboard — top 15 by score
+def init_db():
+    try:
+        os.makedirs(os.path.dirname(DATABASE_PATH), exist_ok=True)
+        db = get_db()
+        db.execute('''
+            CREATE TABLE IF NOT EXISTS leaderboard (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                display_name TEXT NOT NULL,
+                score INTEGER NOT NULL,
+                pct INTEGER NOT NULL,
+                correct INTEGER NOT NULL,
+                streak INTEGER NOT NULL,
+                date TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        db.commit()
+        db.close()
+        print(f"[DB] Initialized at {DATABASE_PATH}", flush=True)
+    except Exception as e:
+        print(f"[DB] Init error: {e}", flush=True)
+
+
+# Called at import time so gunicorn initializes the DB
+init_db()
+
+
 @app.route('/api/leaderboard')
 def get_leaderboard():
     try:
@@ -45,13 +54,15 @@ def get_leaderboard():
         db.close()
         return jsonify([dict(r) for r in rows])
     except Exception as e:
+        print(f"[DB] GET error: {e}", flush=True)
         return jsonify({'error': str(e)}), 500
 
-# POST save score
+
 @app.route('/api/leaderboard/save', methods=['POST'])
 def save_score():
     try:
         data = request.get_json()
+        print(f"[DB] Save request: {data}", flush=True)
         name = str(data.get('display_name', '')).upper().strip()
         name = ''.join(c for c in name if c.isalnum() or c in ' _-')[:20]
         if not name:
@@ -71,15 +82,17 @@ def save_score():
         ))
         db.commit()
         db.close()
+        print(f"[DB] Saved: {name}", flush=True)
         return jsonify({'success': True})
     except Exception as e:
+        print(f"[DB] Save error: {e}", flush=True)
         return jsonify({'error': str(e)}), 500
 
-# Serve the quiz
+
 @app.route('/')
 def index():
     return send_from_directory('.', 'index.html')
 
+
 if __name__ == '__main__':
-    init_db()
     app.run(host='0.0.0.0', port=8080, debug=False)

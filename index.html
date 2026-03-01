@@ -850,6 +850,62 @@
       color: var(--af-gold);
     }
 
+
+    /* Home screen leaderboard preview */
+    .home-lb {
+      margin-top: 28px;
+      border-top: 1px solid rgba(200,168,75,0.2);
+      padding-top: 24px;
+      text-align: left;
+    }
+
+    .home-lb-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 4px;
+      color: var(--af-gold);
+      text-align: center;
+      margin-bottom: 14px;
+    }
+
+    .home-lb-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .home-lb-row:last-child { border-bottom: none; }
+
+    .home-lb-rank {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      width: 28px;
+      color: var(--sf-silver);
+      opacity: 0.6;
+    }
+    .home-lb-rank.m1 { color: #FFD700; opacity: 1; font-size: 0.9rem; }
+    .home-lb-rank.m2 { color: #C0C0C0; opacity: 1; }
+    .home-lb-rank.m3 { color: #CD7F32; opacity: 1; }
+
+    .home-lb-name { flex: 1; padding: 0 10px; color: #c8d8e8; }
+    .home-lb-score { color: var(--af-gold); font-weight: 700; }
+    .home-lb-pct { font-size: 0.8rem; color: var(--sf-silver); margin-left: 10px; opacity: 0.7; }
+
+    .home-lb-empty {
+      text-align: center;
+      padding: 16px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--sf-silver);
+      opacity: 0.4;
+      letter-spacing: 2px;
+    }
+
   </style>
 </head>
 <body>
@@ -886,6 +942,11 @@
       <div class="topic-item"><span class="icon">🗺️</span>Base Locations</div>
     </div>
     <button class="start-btn" onclick="startQuiz()">COMMENCE MISSION</button>
+
+    <div class="home-lb">
+      <div class="home-lb-title">📊 &nbsp; TOP SCORES &nbsp; 📊</div>
+      <div id="home-lb-body"><div class="home-lb-empty">LOADING...</div></div>
+    </div>
   </div>
 
   <!-- Quiz area -->
@@ -950,8 +1011,18 @@
       </div>
     </div>
     <p class="assessment" id="results-assessment"></p>
-    <button class="play-again-btn" onclick="resetQuiz()">NEW MISSION</button>
-    <button class="leaderboard-btn" onclick="showLeaderboard()">📊 VIEW LEADERBOARD</button>
+    <!-- Inline score save form -->
+    <div id="results-save-form" style="margin-bottom: 20px;">
+      <div class="lb-name-form" style="max-width:420px;margin:0 auto 10px;">
+        <input class="lb-name-input" id="results-name-input" type="text" maxlength="20" placeholder="ENTER CALLSIGN TO SAVE SCORE" autocomplete="off"/>
+        <button class="lb-submit-btn" onclick="saveScoreFromResults()">SUBMIT</button>
+      </div>
+      <div class="lb-status" id="results-save-status"></div>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center;">
+      <button class="play-again-btn" onclick="resetQuiz()">NEW MISSION</button>
+      <button class="leaderboard-btn" onclick="showLeaderboard()">📊 LEADERBOARD</button>
+    </div>
   </div>
 
   <!-- Leaderboard -->
@@ -2049,6 +2120,14 @@ const TOTAL = 20;
 function startQuiz() {
   document.getElementById('start-screen').style.display = 'none';
   document.getElementById('quiz-area').style.display = 'block';
+  // Reset results save form
+  const saveForm = document.getElementById('results-save-form');
+  if (saveForm) { saveForm.style.opacity = '1'; saveForm.style.pointerEvents = ''; }
+  const saveStatus = document.getElementById('results-save-status');
+  if (saveStatus) saveStatus.textContent = '';
+  const nameInput = document.getElementById('results-name-input');
+  if (nameInput) nameInput.value = '';
+
   quizQuestions = shuffle(questions).slice(0, TOTAL);
   currentIndex = 0; score = 0; correctCount = 0; incorrectCount = 0;
   streak = 0; bestStreak = 0;
@@ -2252,11 +2331,26 @@ function diamond(cx, cy, w=10, h=14) {
 
 // Helper: oak leaf
 function oakLeaf(cx, cy, color=GOLD, scale=1) {
-  // Simplified oak leaf as SVG path
-  const s = scale;
-  return `<g transform="translate(${cx},${cy}) scale(${s})">
-    <path d="M0,-14 C4,-10 10,-8 8,-2 C12,0 10,6 6,6 C8,10 4,12 0,14 C-4,12 -8,10 -6,6 C-10,6 -12,0 -8,-2 C-10,-8 -4,-10 0,-14Z" fill="${color}"/>
-    <line x1="0" y1="-10" x2="0" y2="12" stroke="${DARK}" stroke-width="1.5"/>
+  // Realistic oak leaf with rounded lobes and stem
+  return `<g transform="translate(${cx},${cy}) scale(${scale})">
+    <path d="
+      M0,18
+      C-2,14 -8,12 -10,8
+      C-14,8 -14,4 -11,3
+      C-14,0 -13,-4 -10,-4
+      C-12,-8 -10,-12 -7,-11
+      C-8,-15 -4,-17 0,-16
+      C4,-17 8,-15 7,-11
+      C10,-12 12,-8 10,-4
+      C13,-4 14,0 11,3
+      C14,4 14,8 10,8
+      C8,12 2,14 0,18Z
+    " fill="${color}"/>
+    <line x1="0" y1="14" x2="0" y2="22" stroke="${color}" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="0" y1="6" x2="-6" y2="0" stroke="${DARK}" stroke-width="1" stroke-opacity="0.4"/>
+    <line x1="0" y1="2" x2="6" y2="-4" stroke="${DARK}" stroke-width="1" stroke-opacity="0.4"/>
+    <line x1="0" y1="-2" x2="-5" y2="-8" stroke="${DARK}" stroke-width="1" stroke-opacity="0.4"/>
+    <line x1="0" y1="-6" x2="5" y2="-11" stroke="${DARK}" stroke-width="1" stroke-opacity="0.4"/>
   </g>`;
 }
 
@@ -2337,16 +2431,16 @@ const insig_CMSgt = svgWrap([
 
 // ---- USAF OFFICER INSIGNIA ----
 
-// O-1 Second Lieutenant — single gold bar
-const insig_2Lt = svgWrap(`<rect x="44" y="46" width="72" height="28" rx="3" fill="${GOLD}"/>`, 'USAF OFFICER');
+// O-1 Second Lieutenant — single vertical gold bar
+const insig_2Lt = svgWrap(`<rect x="66" y="22" width="28" height="76" rx="3" fill="${GOLD}"/>`, 'USAF OFFICER');
 
-// O-2 First Lieutenant — single silver bar
-const insig_1Lt = svgWrap(`<rect x="44" y="46" width="72" height="28" rx="3" fill="${SILVER}"/>`, 'USAF OFFICER');
+// O-2 First Lieutenant — single vertical silver bar
+const insig_1Lt = svgWrap(`<rect x="66" y="22" width="28" height="76" rx="3" fill="${SILVER}"/>`, 'USAF OFFICER');
 
-// O-3 Captain — two silver bars
+// O-3 Captain — two vertical silver bars (railroad tracks)
 const insig_Capt = svgWrap(`
-  <rect x="28" y="46" width="44" height="28" rx="3" fill="${SILVER}"/>
-  <rect x="88" y="46" width="44" height="28" rx="3" fill="${SILVER}"/>
+  <rect x="46" y="22" width="26" height="76" rx="3" fill="${SILVER}"/>
+  <rect x="88" y="22" width="26" height="76" rx="3" fill="${SILVER}"/>
 `, 'USAF OFFICER');
 
 // O-4 Major — gold oak leaf
@@ -2821,6 +2915,69 @@ function backToResults() {
   document.getElementById('leaderboard-screen').classList.remove('visible');
   document.getElementById('results').classList.add('visible');
 }
+
+
+
+// ── HOME SCREEN LEADERBOARD ──────────────────────────────────────────────────
+async function loadHomeLb() {
+  const el = document.getElementById('home-lb-body');
+  if (!el) return;
+  try {
+    const res = await fetch('/api/leaderboard');
+    const entries = await res.json();
+    if (!entries.length) {
+      el.innerHTML = '<div class="home-lb-empty">NO SCORES YET — BE THE FIRST</div>';
+      return;
+    }
+    const medals = ['🥇','🥈','🥉'];
+    const mClasses = ['m1','m2','m3'];
+    el.innerHTML = entries.slice(0, 5).map((e, i) => `
+      <div class="home-lb-row">
+        <span class="home-lb-rank ${i < 3 ? mClasses[i] : ''}">${i < 3 ? medals[i] : '#' + (i+1)}</span>
+        <span class="home-lb-name">${e.display_name}</span>
+        <span class="home-lb-score">${e.score.toLocaleString()}</span>
+        <span class="home-lb-pct">${e.pct}%</span>
+      </div>`).join('');
+  } catch {
+    el.innerHTML = '<div class="home-lb-empty">UNAVAILABLE</div>';
+  }
+}
+
+// ── SAVE FROM RESULTS SCREEN ─────────────────────────────────────────────────
+async function saveScoreFromResults() {
+  if (!lastScore) return;
+  const input = document.getElementById('results-name-input');
+  const status = document.getElementById('results-save-status');
+  const name = input.value.trim().toUpperCase().replace(/[^A-Z0-9 _-]/g, '').slice(0, 20);
+  if (!name) { status.textContent = 'ENTER A CALLSIGN TO SUBMIT'; return; }
+
+  status.textContent = 'TRANSMITTING...';
+  try {
+    const res = await fetch('/api/leaderboard/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        display_name: name,
+        score: lastScore.score,
+        pct: lastScore.pct,
+        correct: lastScore.correct,
+        streak: lastScore.streak,
+        date: new Date().toISOString().slice(0, 10)
+      })
+    });
+    if (!res.ok) throw new Error();
+    status.textContent = `✓ SCORE SAVED — ${name}`;
+    document.getElementById('results-save-form').style.opacity = '0.5';
+    document.getElementById('results-save-form').style.pointerEvents = 'none';
+    lastScore = null;
+    loadHomeLb(); // refresh home leaderboard in background
+  } catch {
+    status.textContent = 'SAVE FAILED — TRY AGAIN';
+  }
+}
+
+// Load home leaderboard on page ready
+window.addEventListener('DOMContentLoaded', loadHomeLb);
 
 
 // Generate stars
