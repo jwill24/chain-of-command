@@ -392,6 +392,34 @@
       margin-bottom: 6px;
     }
 
+    .feedback-ref {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(200, 168, 75, 0.15);
+    }
+
+    .feedback-ref a {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--accent);
+      text-decoration: none;
+      letter-spacing: 1px;
+      opacity: 0.8;
+    }
+
+    .feedback-ref a:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+
+    .feedback-ref::before {
+      content: '↗ SOURCE: ';
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--sf-silver);
+      letter-spacing: 2px;
+    }
+
     @keyframes fadeIn {
       from { opacity: 0; } to { opacity: 1; }
     }
@@ -995,7 +1023,8 @@ const questions = [
     text: "GPS (Global Positioning System) is operated by:",
     answers: ["United States Space Force", "United States Air Force", "NOAA", "NASA"],
     correct: 0,
-    explanation: "GPS is operated by the U.S. Space Force (previously the Air Force before USSF was established). The 2nd Space Operations Squadron (2 SOPS) at Schriever Space Force Base, Colorado manages the GPS constellation of satellites. GPS provides positioning, navigation, and timing for civilian and military users worldwide."
+    explanation: "GPS is operated by the U.S. Space Force (previously the Air Force before USSF was established). The 2nd Space Operations Squadron (2 SOPS) at Schriever Space Force Base, Colorado manages the GPS constellation of satellites. GPS provides positioning, navigation, and timing for civilian and military users worldwide.",
+    ref: { text: "2 SOPS GPS Operations", url: "https://www.schriever.spaceforce.mil/About-Us/Units/Space-Delta-8/2nd-Space-Operations-Squadron/" }
   },
   {
     category: "SPACE FORCE MISSIONS",
@@ -1034,14 +1063,16 @@ const questions = [
     text: "The Space Force motto is:",
     answers: ["Semper Supra", "Aim High", "Guardians of the High Ground", "Ad Astra"],
     correct: 0,
-    explanation: "'Semper Supra' is Latin for 'Always Above' — the Space Force motto. The Air Force motto is 'Aim High...Fly-Fight-Win.' The Marine Corps uses 'Semper Fidelis' (Always Faithful) and the Coast Guard uses 'Semper Paratus' (Always Ready). Don't confuse these."
+    explanation: "'Semper Supra' is Latin for 'Always Above' — the Space Force motto. The Air Force motto is 'Aim High...Fly-Fight-Win.' The Marine Corps uses 'Semper Fidelis' (Always Faithful) and the Coast Guard uses 'Semper Paratus' (Always Ready). Don't confuse these.",
+    ref: { text: "Space Force About Us", url: "https://www.spaceforce.mil/About-Us/" }
   },
   {
     category: "SPACE FORCE",
     text: "The Space Force was established as the 6th branch of the U.S. military in which year?",
     answers: ["2019", "2020", "2017", "2021"],
     correct: 0,
-    explanation: "The U.S. Space Force was established December 20, 2019, when President Trump signed the National Defense Authorization Act. It became the first new military branch since the Air Force was separated from the Army in 1947. It's headquartered at the Pentagon with major installations at Peterson, Schriever, and Buckley Space Force Bases in Colorado."
+    explanation: "The U.S. Space Force was established December 20, 2019, when President Trump signed the National Defense Authorization Act. It became the first new military branch since the Air Force was separated from the Army in 1947. It's headquartered at the Pentagon with major installations at Peterson, Schriever, and Buckley Space Force Bases in Colorado.",
+    ref: { text: "Space Force Milestones", url: "https://www.spaceforce.mil/About-Us/Space-Force-Milestones/" }
   },
   {
     category: "SPACE FORCE",
@@ -1090,19 +1121,21 @@ const questions = [
       "Space Forces Space (S4S), SSC, and STARCOM"
     ],
     correct: 0,
-    explanation: "The three Space Force field commands are: Combat Forces Command (CFC, formerly SpOC — redesignated Nov 3, 2025), Space Systems Command (SSC, headquartered at Los Angeles AFB), and Space Training and Readiness Command (STARCOM, headquartered at Peterson SFB / relocating to Patrick SFB, FL). Each is led by a Lieutenant General (3-star) except STARCOM which is led by a Major General (2-star)."
+    explanation: "The three Space Force field commands are: Combat Forces Command (CFC, formerly SpOC — redesignated Nov 3, 2025), Space Systems Command (SSC, headquartered at Los Angeles AFB), and Space Training and Readiness Command (STARCOM, headquartered at Peterson SFB / relocating to Patrick SFB, FL). Each is led by a Lieutenant General (3-star) except STARCOM which is led by a Major General (2-star).",
+    ref: { text: "USSF Structure – Wikipedia", url: "https://en.wikipedia.org/wiki/Structure_of_the_United_States_Space_Force" }
   },
   {
     category: "SF FIELD COMMANDS",
     text: "What is the primary mission of Combat Forces Command (CFC, formerly SpOC)?",
     answers: [
-      "Organize, train, equip, and present combat-ready space forces to combatant commanders",
+      "Generate and present combat-ready space forces to the joint force",
       "Develop and acquire new space systems and satellites",
       "Train and educate space professionals and develop doctrine",
       "Manage launch ranges at Vandenberg and Cape Canaveral"
     ],
     correct: 0,
-    explanation: "Combat Forces Command (CFC) — redesignated from Space Operations Command (SpOC) on November 3, 2025 — is the Space Force's primary force provider. It organizes, trains, equips, and presents combat-ready space forces for combatant commanders, coalition partners, and the joint force. It's headquartered at Peterson Space Force Base, Colorado."
+    explanation: "CFC — redesignated from Space Operations Command (SpOC) on November 3, 2025 — generates and presents combat-ready units of action, providing combat-credible space solutions to the joint force. The redesignation was deliberate: 'Combat Forces' signals the shift toward a warfighting identity. 'Organize, train, and equip' is a service-level function at HQ USSF — not CFC's specific role.",
+    ref: { text: "USSF: CFC Establishment", url: "https://www.spaceforce.mil/News/Article-Display/Article/4337269/us-space-force-establishes-combat-forces-command-welcomes-new-fldcom-commander/" }
   },
   {
     category: "SF FIELD COMMANDS",
@@ -1114,7 +1147,8 @@ const questions = [
       "Commanding forces in actual space operations and combat"
     ],
     correct: 0,
-    explanation: "SSC is the Space Force's acquisition and development command, headquartered at Los Angeles Air Force Base (El Segundo, CA). It develops, acquires, launches, and sustains space systems for the warfighter. SSC manages the nation's space launch ranges and partners with NRO and commercial industry. It does NOT operate the systems it builds — that's CFC's job."
+    explanation: "SSC is the Space Force's acquisition and development command, headquartered at Los Angeles Air Force Base (El Segundo, CA). It develops, acquires, launches, and sustains space systems for the warfighter. SSC manages the nation's space launch ranges and partners with NRO and commercial industry. It does NOT operate the systems it builds — that's CFC's job.",
+    ref: { text: "SSC Official Site", url: "https://www.ssc.spaceforce.mil/About-Us/About-Us" }
   },
   {
     category: "SF FIELD COMMANDS",
@@ -1126,7 +1160,8 @@ const questions = [
       "Providing installation support to Space Force bases"
     ],
     correct: 0,
-    explanation: "Space Training and Readiness Command (STARCOM) trains and educates space professionals, develops warfighting doctrine and tactics, and tests and evaluates USSF capabilities. It's the Space Force's equivalent of Air Education and Training Command (AETC) plus doctrine development. STARCOM is led by a 2-star Major General and is relocating from Peterson SFB to Patrick SFB, Florida."
+    explanation: "Space Training and Readiness Command (STARCOM) trains and educates space professionals, develops warfighting doctrine and tactics, and tests and evaluates USSF capabilities. It's the Space Force's equivalent of Air Education and Training Command (AETC) plus doctrine development. STARCOM is led by a 2-star Major General and is relocating from Peterson SFB to Patrick SFB, Florida.",
+    ref: { text: "STARCOM Official Site", url: "https://www.starcom.spaceforce.mil/About-Us/About-STARCOM/" }
   },
 
   // ===== SPACE FORCE DELTAS =====
@@ -1140,7 +1175,8 @@ const questions = [
       "Electromagnetic warfare against adversary space systems"
     ],
     correct: 0,
-    explanation: "Space Delta 2 (redesignated Mission Delta 2 in Oct 2024) conducts Space Domain Awareness (SDA) operations — tracking, identifying, and characterizing objects and activities in orbit. This includes operating sensors to maintain the space catalog and support battle management. It's located at Peterson SFB, Colorado. Think: 'Delta 2 = Domain Awareness.'"
+    explanation: "Space Delta 2 (redesignated Mission Delta 2 in Oct 2024) conducts Space Domain Awareness (SDA) operations — tracking, identifying, and characterizing objects and activities in orbit. This includes operating sensors to maintain the space catalog and support battle management. It's located at Peterson SFB, Colorado. Think: 'Delta 2 = Domain Awareness.'",
+    ref: { text: "Space Delta 2 Fact Sheet", url: "https://www.spaceforce.mil/About-Us/Fact-Sheets/Fact-Sheet-Display/Article/3738430/space-delta-2/" }
   },
   {
     category: "SF DELTAS & SQUADRONS",
@@ -1176,7 +1212,8 @@ const questions = [
       "Training center for space operators"
     ],
     correct: 0,
-    explanation: "Space Delta 5 operates the Combined Space Operations Center (CSpOC) at Vandenberg SFB — the Space Force's primary operational C2 hub, modeled after an Air Force Air Operations Center (AOC). It executes operational command and control of space forces to achieve theater and global objectives for USSPACECOM and combatant commanders. Coalition partners from Australia, Canada, and the UK are embedded."
+    explanation: "Space Delta 5 operates the Combined Space Operations Center (CSpOC) at Vandenberg SFB — the Space Force's primary operational C2 hub, modeled after an Air Force Air Operations Center (AOC). It executes operational command and control of space forces to achieve theater and global objectives for USSPACECOM and combatant commanders. Coalition partners from Australia, Canada, and the UK are embedded.",
+    ref: { text: "CSpOC / DEL 5 Fact Sheet", url: "https://www.vandenberg.spaceforce.mil/Portals/18/documents/CFSCC/CSpOC_DEL5_FactSheet_6Aug21.pdf" }
   },
   {
     category: "SF DELTAS & SQUADRONS",
@@ -1236,7 +1273,8 @@ const questions = [
       "Space Operations Center — conducting 24/7 space ops"
     ],
     correct: 0,
-    explanation: "Space Delta 18 is the National Space Intelligence Center (NSIC), co-located with the National Air and Space Intelligence Center (NASIC) at Wright-Patterson AFB, Ohio. It delivers foundational intelligence on foreign space and counterspace capabilities to national leaders, joint warfighters, and acquisition professionals. Delta 18 took the number '18' because the Space Force became the 18th member of the U.S. Intelligence Community."
+    explanation: "Space Delta 18 is the National Space Intelligence Center (NSIC), co-located with the National Air and Space Intelligence Center (NASIC) at Wright-Patterson AFB, Ohio. It delivers foundational intelligence on foreign space and counterspace capabilities to national leaders, joint warfighters, and acquisition professionals. Delta 18 took the number '18' because the Space Force became the 18th member of the U.S. Intelligence Community.",
+    ref: { text: "USSF Structure – Wikipedia", url: "https://en.wikipedia.org/wiki/Structure_of_the_United_States_Space_Force" }
   },
 
   // ===== SPACE FORCE JOINT CONNECTIONS =====
@@ -1250,7 +1288,8 @@ const questions = [
       "Space Systems, Surveillance, and Security"
     ],
     correct: 0,
-    explanation: "S4S (Space Forces – Space) is the Space Force service component command to U.S. Space Command (USSPACECOM), established December 6, 2023. S4S commands combat forces in space superiority operations and delivers global space-enabled effects to the joint force. Its commander is dual-hatted as the Combined Joint Force Space Component Commander (CJFSCC). HQ is at Vandenberg SFB, California."
+    explanation: "S4S (Space Forces – Space) is the Space Force service component command to U.S. Space Command (USSPACECOM), established December 6, 2023. S4S commands combat forces in space superiority operations and delivers global space-enabled effects to the joint force. Its commander is dual-hatted as the Combined Joint Force Space Component Commander (CJFSCC). HQ is at Vandenberg SFB, California.",
+    ref: { text: "S4S About Us", url: "https://www.spaceforce.mil/About-Us/US-Space-Forces-Space/" }
   },
   {
     category: "SF JOINT CONNECTIONS",
@@ -1274,7 +1313,8 @@ const questions = [
       "USSPACECOM is a Space Force subordinate command"
     ],
     correct: 0,
-    explanation: "This is a critical distinction. U.S. Space Command (USSPACECOM) is a unified combatant command under the President/SecDef — it EMPLOYS forces. The U.S. Space Force (USSF) is a military service under the Department of the Air Force — it ORGANIZES, TRAINS, and EQUIPS forces. The Space Force provides forces to USSPACECOM to conduct space operations. This mirrors the Army/Air Force providing forces to geographic combatant commands."
+    explanation: "This is a critical distinction. U.S. Space Command (USSPACECOM) is a unified combatant command under the President/SecDef — it EMPLOYS forces. The U.S. Space Force (USSF) is a military service under the Department of the Air Force — it ORGANIZES, TRAINS, and EQUIPS forces. The Space Force provides forces to USSPACECOM to conduct space operations. This mirrors the Army/Air Force providing forces to geographic combatant commands.",
+    ref: { text: "USSPACECOM – Wikipedia", url: "https://en.wikipedia.org/wiki/United_States_Space_Command" }
   },
   {
     category: "SF JOINT CONNECTIONS",
@@ -1286,7 +1326,8 @@ const questions = [
       "Cheyenne Mountain Space Force Station, Colorado"
     ],
     correct: 0,
-    explanation: "The NSDC is at Schriever Space Force Base (Colorado Springs area). It integrates DoD, intelligence community, NRO, and commercial space partners for unified space defense operations — it's a joint, multi-agency operations center focused on space threat response. Space Delta 15 provides the Space Force's command and control capability to the NSDC."
+    explanation: "The NSDC is at Schriever Space Force Base (Colorado Springs area). It integrates DoD, intelligence community, NRO, and commercial space partners for unified space defense operations — it's a joint, multi-agency operations center focused on space threat response. Space Delta 15 provides the Space Force's command and control capability to the NSDC.",
+    ref: { text: "NSDC – Wikipedia", url: "https://en.wikipedia.org/wiki/National_Space_Defense_Center" }
   },
   {
     category: "SF JOINT CONNECTIONS",
@@ -1298,7 +1339,8 @@ const questions = [
       "Training space operators for CFC"
     ],
     correct: 0,
-    explanation: "Space Delta 15 is the Space Force's force presentation unit to the NSDC and USSPACECOM's protect-and-defend mission. It provides mission-ready C2 crew forces, ISR capabilities, and cyber defense support to the NSDC. DEL 15's colonel is triple-hatted as: DEL 15 commander, NSDC Director, and S4S Director of Operations. Activated March 10, 2023, at Schriever SFB."
+    explanation: "Space Delta 15 is the Space Force's force presentation unit to the NSDC and USSPACECOM's protect-and-defend mission. It provides mission-ready C2 crew forces, ISR capabilities, and cyber defense support to the NSDC. DEL 15's colonel is triple-hatted as: DEL 15 commander, NSDC Director, and S4S Director of Operations. Activated March 10, 2023, at Schriever SFB.",
+    ref: { text: "DEL 15 Activation – DVIDS", url: "https://www.dvidshub.net/news/441290/del-15-activates-brings-c2-support-nsdc" }
   },
   {
     category: "SF JOINT CONNECTIONS",
@@ -1310,7 +1352,8 @@ const questions = [
       "A training simulation center for space operators"
     ],
     correct: 0,
-    explanation: "The CSpOC (operated by Space Delta 5 at Vandenberg SFB) is the joint space operations hub — modeled on the Air Force's Air Operations Center concept. It executes 24/7 command and control of space forces for USSPACECOM. Coalition partners from Australia, Canada, and the UK are embedded. It works closely with the NSDC, NRO Operations Center, and partner nation space operations centers."
+    explanation: "The CSpOC (operated by Space Delta 5 at Vandenberg SFB) is the joint space operations hub — modeled on the Air Force's Air Operations Center concept. It executes 24/7 command and control of space forces for USSPACECOM. Coalition partners from Australia, Canada, and the UK are embedded. It works closely with the NSDC, NRO Operations Center, and partner nation space operations centers.",
+    ref: { text: "CSpOC / DEL 5 Fact Sheet", url: "https://www.vandenberg.spaceforce.mil/Portals/18/documents/CFSCC/CSpOC_DEL5_FactSheet_6Aug21.pdf" }
   },
   {
     category: "SF JOINT CONNECTIONS",
@@ -1877,6 +1920,17 @@ function selectAnswer(btn, isCorrect, q, grid) {
 
   // Show feedback
   document.getElementById('feedback-text').textContent = q.explanation;
+
+  // Render source reference link if present
+  const existingRef = document.getElementById('feedback-ref');
+  if (existingRef) existingRef.remove();
+  if (q.ref) {
+    const refEl = document.createElement('div');
+    refEl.id = 'feedback-ref';
+    refEl.className = 'feedback-ref';
+    refEl.innerHTML = `<a href="${q.ref.url}" target="_blank" rel="noopener">${q.ref.text}</a>`;
+    document.getElementById('feedback-text').after(refEl);
+  }
   document.getElementById('feedback').classList.add('visible');
   document.getElementById('next-btn').classList.add('visible');
   document.getElementById('next-btn').textContent = currentIndex < TOTAL - 1 ? 'NEXT QUESTION ›' : 'VIEW RESULTS ›';
