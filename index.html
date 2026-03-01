@@ -1,0 +1,1908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>USAF & USSF Knowledge Quiz</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --af-blue: #003087;
+      --af-gold: #C8A84B;
+      --sf-black: #0a0a12;
+      --sf-purple: #4a2c8a;
+      --sf-silver: #8c9db5;
+      --star-white: #e8edf5;
+      --correct: #1a7a4a;
+      --incorrect: #7a1a1a;
+      --accent: #00b4d8;
+      --glow: rgba(0, 180, 216, 0.3);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Rajdhani', sans-serif;
+      background: var(--sf-black);
+      color: var(--star-white);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Starfield background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(74, 44, 138, 0.15) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(0, 48, 135, 0.2) 0%, transparent 50%),
+        radial-gradient(ellipse at 60% 80%, rgba(0, 180, 216, 0.08) 0%, transparent 40%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .stars {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .star {
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+      animation: twinkle var(--duration) ease-in-out infinite var(--delay);
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 1; }
+    }
+
+    #app {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Header */
+    header {
+      width: 100%;
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(200, 168, 75, 0.3);
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(10px);
+    }
+
+    .logo {
+      font-family: 'Orbitron', monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 4px;
+      color: var(--af-gold);
+      text-transform: uppercase;
+    }
+
+    .logo span {
+      color: var(--accent);
+    }
+
+    .branch-badges {
+      display: flex;
+      gap: 12px;
+    }
+
+    .badge {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      padding: 4px 10px;
+      border: 1px solid;
+      letter-spacing: 2px;
+    }
+
+    .badge.af { border-color: var(--af-gold); color: var(--af-gold); }
+    .badge.sf { border-color: var(--accent); color: var(--accent); }
+
+    /* Score bar */
+    .score-bar {
+      width: 100%;
+      max-width: 800px;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    .score-stat {
+      text-align: center;
+    }
+
+    .score-stat .label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--sf-silver);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+
+    .score-stat .value {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--af-gold);
+      line-height: 1;
+      margin-top: 2px;
+    }
+
+    .score-stat .value.correct { color: #4ade80; }
+    .score-stat .value.wrong { color: #f87171; }
+
+    /* Progress bar */
+    .progress-container {
+      width: 100%;
+      max-width: 800px;
+      padding: 0 20px;
+      margin-bottom: 10px;
+    }
+
+    .progress-track {
+      height: 3px;
+      background: rgba(255,255,255,0.1);
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--af-gold), var(--accent));
+      transition: width 0.5s ease;
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    .progress-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--sf-silver);
+      letter-spacing: 2px;
+      margin-bottom: 6px;
+    }
+
+    /* Category filter */
+    .category-filter {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 16px 20px;
+      max-width: 800px;
+    }
+
+    .cat-btn {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 2px;
+      padding: 5px 12px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: transparent;
+      color: var(--sf-silver);
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+    }
+
+    .cat-btn:hover, .cat-btn.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(0, 180, 216, 0.1);
+    }
+
+    /* Question card */
+    .question-card {
+      width: 100%;
+      max-width: 800px;
+      margin: 10px 20px 20px;
+      padding: 36px 40px;
+      background: rgba(10, 15, 30, 0.85);
+      border: 1px solid rgba(200, 168, 75, 0.25);
+      backdrop-filter: blur(20px);
+      position: relative;
+      animation: cardIn 0.4s ease;
+    }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .question-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 4px; height: 100%;
+      background: linear-gradient(180deg, var(--af-gold), var(--accent));
+    }
+
+    .question-category {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 4px;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .question-text {
+      font-size: 1.4rem;
+      font-weight: 600;
+      line-height: 1.4;
+      color: var(--star-white);
+      margin-bottom: 28px;
+    }
+
+    /* Rank patch display */
+    .rank-visual {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
+    .rank-patch {
+      width: 120px;
+      height: 60px;
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      border: 2px solid var(--af-gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .rank-chevrons {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .chevron {
+      width: 40px;
+      height: 8px;
+      position: relative;
+    }
+
+    .chevron::before, .chevron::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      width: 50%;
+      height: 100%;
+      background: var(--af-gold);
+      clip-path: polygon(0 0, 100% 0, 80% 100%, 20% 100%);
+    }
+
+    /* Answer options */
+    .answers-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .answer-btn {
+      padding: 16px 20px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--star-white);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1rem;
+      font-weight: 500;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      letter-spacing: 0.5px;
+      line-height: 1.3;
+    }
+
+    .answer-btn:not(.disabled):hover {
+      border-color: var(--af-gold);
+      background: rgba(200, 168, 75, 0.08);
+      color: var(--af-gold);
+    }
+
+    .answer-btn.correct {
+      border-color: #4ade80;
+      background: rgba(26, 122, 74, 0.3);
+      color: #4ade80;
+    }
+
+    .answer-btn.incorrect {
+      border-color: #f87171;
+      background: rgba(122, 26, 26, 0.3);
+      color: #f87171;
+    }
+
+    .answer-btn.disabled {
+      cursor: default;
+    }
+
+    .answer-letter {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--sf-silver);
+      margin-right: 10px;
+      opacity: 0.7;
+    }
+
+    /* Feedback */
+    .feedback {
+      margin-top: 20px;
+      padding: 16px 20px;
+      border-left: 3px solid var(--af-gold);
+      background: rgba(200, 168, 75, 0.05);
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: #c8d8e8;
+      animation: fadeIn 0.3s ease;
+      display: none;
+    }
+
+    .feedback.visible { display: block; }
+    .feedback .feedback-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7rem;
+      color: var(--af-gold);
+      letter-spacing: 2px;
+      margin-bottom: 6px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; } to { opacity: 1; }
+    }
+
+    /* Next button */
+    .next-btn {
+      margin-top: 20px;
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, var(--af-blue), var(--sf-purple));
+      border: 1px solid var(--af-gold);
+      color: var(--af-gold);
+      font-family: 'Orbitron', monospace;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 4px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.2s;
+      display: none;
+    }
+
+    .next-btn.visible { display: block; }
+    .next-btn:hover {
+      background: linear-gradient(135deg, #004ab0, #6b3dc8);
+      box-shadow: 0 0 20px var(--glow);
+    }
+
+    /* Results screen */
+    #results {
+      width: 100%;
+      max-width: 800px;
+      margin: 20px;
+      padding: 50px 40px;
+      background: rgba(10, 15, 30, 0.9);
+      border: 1px solid rgba(200, 168, 75, 0.3);
+      text-align: center;
+      display: none;
+    }
+
+    #results.visible { display: block; animation: cardIn 0.5s ease; }
+
+    .results-rank {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.8rem;
+      letter-spacing: 4px;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .results-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: var(--af-gold);
+      margin-bottom: 24px;
+      line-height: 1.1;
+    }
+
+    .results-score {
+      font-size: 5rem;
+      font-family: 'Orbitron', monospace;
+      font-weight: 900;
+      color: var(--star-white);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .results-pct {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1rem;
+      color: var(--sf-silver);
+      letter-spacing: 3px;
+      margin-bottom: 32px;
+    }
+
+    .results-breakdown {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 36px;
+    }
+
+    .breakdown-stat {
+      padding: 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .breakdown-stat .val {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .breakdown-stat .lbl {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 2px;
+      color: var(--sf-silver);
+    }
+
+    .assessment {
+      font-size: 1.1rem;
+      color: #a0b4c8;
+      margin-bottom: 36px;
+      line-height: 1.5;
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .play-again-btn {
+      padding: 16px 48px;
+      background: transparent;
+      border: 2px solid var(--af-gold);
+      color: var(--af-gold);
+      font-family: 'Orbitron', monospace;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .play-again-btn:hover {
+      background: var(--af-gold);
+      color: var(--sf-black);
+      box-shadow: 0 0 30px rgba(200, 168, 75, 0.4);
+    }
+
+    /* Start screen */
+    #start-screen {
+      width: 100%;
+      max-width: 800px;
+      margin: 40px 20px;
+      padding: 60px 50px;
+      background: rgba(10, 15, 30, 0.9);
+      border: 1px solid rgba(200, 168, 75, 0.3);
+      text-align: center;
+      animation: cardIn 0.5s ease;
+    }
+
+    .start-emblem {
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 30px;
+      border: 2px solid var(--af-gold);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      background: radial-gradient(circle, rgba(0,48,135,0.5), rgba(10,10,18,0.8));
+      box-shadow: 0 0 30px rgba(200, 168, 75, 0.2);
+    }
+
+    .start-tagline {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 5px;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .start-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: var(--af-gold);
+      line-height: 1.1;
+      margin-bottom: 20px;
+    }
+
+    .start-desc {
+      font-size: 1.05rem;
+      color: #8c9db5;
+      line-height: 1.6;
+      max-width: 500px;
+      margin: 0 auto 36px;
+    }
+
+    .topic-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin-bottom: 36px;
+    }
+
+    .topic-item {
+      padding: 12px 8px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.02);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.62rem;
+      color: var(--sf-silver);
+      letter-spacing: 1px;
+      text-align: center;
+    }
+
+    .topic-item .icon { font-size: 1.2rem; display: block; margin-bottom: 4px; }
+
+    .start-btn {
+      padding: 18px 60px;
+      background: linear-gradient(135deg, var(--af-blue), var(--sf-purple));
+      border: 2px solid var(--af-gold);
+      color: var(--af-gold);
+      font-family: 'Orbitron', monospace;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 5px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .start-btn:hover {
+      box-shadow: 0 0 40px rgba(200, 168, 75, 0.3), 0 0 80px rgba(0,180,216,0.15);
+      transform: translateY(-2px);
+    }
+
+    .question-counter {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 3px;
+      color: var(--sf-silver);
+      margin-bottom: 6px;
+    }
+
+    @media (max-width: 600px) {
+      .answers-grid { grid-template-columns: 1fr; }
+      .topic-grid { grid-template-columns: repeat(2, 1fr); }      .results-breakdown { grid-template-columns: repeat(3, 1fr); }
+      .question-card, #results, #start-screen { padding: 24px 20px; }
+      .start-title { font-size: 1.6rem; }
+      header { padding: 14px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<div id="app">
+  <header>
+    <div class="logo">AFSF<span>·</span>BRIEF</div>
+    <div class="branch-badges">
+      <div class="badge af">USAF</div>
+      <div class="badge sf">USSF</div>
+    </div>
+  </header>
+
+  <!-- Start Screen -->
+  <div id="start-screen">
+    <div class="start-emblem">🦅</div>
+    <div class="start-tagline">Mission Readiness Assessment</div>
+    <h1 class="start-title">AIR FORCE &<br>SPACE FORCE<br>KNOWLEDGE QUIZ</h1>
+    <p class="start-desc">
+      Test your knowledge of Air Force and Space Force ranks, insignia, AFSCs, career fields, 
+      organizational structure, and the specialized vocabulary you need to engage confidently with military personnel.
+    </p>
+    <div class="topic-grid">
+      <div class="topic-item"><span class="icon">🎖️</span>Rank Structure</div>
+      <div class="topic-item"><span class="icon">🔷</span>Insignia & Patches</div>
+      <div class="topic-item"><span class="icon">🚀</span>Career Fields (AFSCs)</div>
+      <div class="topic-item"><span class="icon">🏛️</span>Org Structure</div>
+      <div class="topic-item"><span class="icon">🛰️</span>SF Field Commands</div>
+      <div class="topic-item"><span class="icon">⚡</span>Deltas & Squadrons</div>
+      <div class="topic-item"><span class="icon">🌐</span>Joint Connections</div>
+      <div class="topic-item"><span class="icon">📋</span>J-Codes & Planning</div>
+      <div class="topic-item"><span class="icon">✈️</span>Aircraft & Missions</div>
+      <div class="topic-item"><span class="icon">🗺️</span>Base Locations</div>
+    </div>
+    <button class="start-btn" onclick="startQuiz()">COMMENCE MISSION</button>
+  </div>
+
+  <!-- Quiz area -->
+  <div id="quiz-area" style="display:none; width:100%; max-width:800px; padding: 0 0 40px;">
+    <div class="score-bar">
+      <div class="score-stat">
+        <div class="label">Score</div>
+        <div class="value" id="score-val">0</div>
+      </div>
+      <div class="score-stat">
+        <div class="label">Correct</div>
+        <div class="value correct" id="correct-val">0</div>
+      </div>
+      <div class="score-stat">
+        <div class="label">Incorrect</div>
+        <div class="value wrong" id="incorrect-val">0</div>
+      </div>
+      <div class="score-stat">
+        <div class="label">Streak</div>
+        <div class="value" id="streak-val">0</div>
+      </div>
+    </div>
+
+    <div class="progress-container">
+      <div class="progress-label" id="progress-label">QUESTION 1 OF 20</div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="question-card" id="question-card">
+      <div class="question-category" id="q-category"></div>
+      <div class="question-counter" id="q-counter"></div>
+      <div class="question-text" id="q-text"></div>
+      <div class="answers-grid" id="answers-grid"></div>
+      <div class="feedback" id="feedback">
+        <div class="feedback-title">INTEL BRIEF</div>
+        <div id="feedback-text"></div>
+      </div>
+      <button class="next-btn" id="next-btn" onclick="nextQuestion()">NEXT QUESTION ›</button>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="results">
+    <div class="results-rank" id="results-rank"></div>
+    <div class="results-title" id="results-title"></div>
+    <div class="results-score" id="results-score"></div>
+    <div class="results-pct" id="results-pct"></div>
+    <div class="results-breakdown">
+      <div class="breakdown-stat">
+        <div class="val" id="r-correct" style="color:#4ade80"></div>
+        <div class="lbl">Correct</div>
+      </div>
+      <div class="breakdown-stat">
+        <div class="val" id="r-incorrect" style="color:#f87171"></div>
+        <div class="lbl">Incorrect</div>
+      </div>
+      <div class="breakdown-stat">
+        <div class="val" id="r-streak" style="color:var(--af-gold)"></div>
+        <div class="lbl">Best Streak</div>
+      </div>
+    </div>
+    <p class="assessment" id="results-assessment"></p>
+    <button class="play-again-btn" onclick="resetQuiz()">NEW MISSION</button>
+  </div>
+</div>
+
+<script>
+// ===== QUESTION DATABASE =====
+const questions = [
+  // RANKS - ENLISTED USAF
+  {
+    category: "USAF ENLISTED RANKS",
+    text: "What is the lowest enlisted rank in the United States Air Force?",
+    answers: ["Airman Basic (AB)", "Airman (Amn)", "Private", "Recruit"],
+    correct: 0,
+    explanation: "Airman Basic (AB) is the entry-level enlisted rank, pay grade E-1. They wear no insignia — their sleeves are bare. After basic training, Airmen can promote to Airman (E-2) with time in service."
+  },
+  {
+    category: "USAF ENLISTED RANKS",
+    text: "An E-4 in the Air Force holds which rank?",
+    answers: ["Senior Airman (SrA)", "Airman First Class (A1C)", "Staff Sergeant (SSgt)", "Airman (Amn)"],
+    correct: 0,
+    explanation: "Senior Airman (SrA) is E-4. Their insignia is three chevrons pointing up with a star in the middle. This is the last enlisted rank before the Non-Commissioned Officer (NCO) tier begins at E-5."
+  },
+  {
+    category: "USAF ENLISTED RANKS",
+    text: "What rank marks the beginning of the NCO tier in the Air Force?",
+    answers: ["Staff Sergeant (E-5)", "Senior Airman (E-4)", "Technical Sergeant (E-6)", "Master Sergeant (E-7)"],
+    correct: 0,
+    explanation: "Staff Sergeant (SSgt, E-5) is the first Non-Commissioned Officer rank. NCOs are expected to lead and mentor junior enlisted. The SSgt insignia has three chevrons with a star above them."
+  },
+  {
+    category: "USAF ENLISTED RANKS",
+    text: "The highest enlisted rank in the Air Force is:",
+    answers: ["Chief Master Sergeant of the AF (CMSAF)", "Chief Master Sergeant (CMSgt)", "Command Chief Master Sergeant", "Senior Master Sergeant"],
+    correct: 0,
+    explanation: "The Chief Master Sergeant of the Air Force (CMSAF) is the highest enlisted rank, E-9 with special status. There is only ONE CMSAF at a time — they serve as the senior enlisted advisor to the Chief of Staff of the Air Force and the Secretary of the Air Force."
+  },
+  {
+    category: "USAF ENLISTED RANKS",
+    text: "What is the correct order from E-7 to E-9 in the USAF?",
+    answers: ["MSgt → SMSgt → CMSgt", "SSgt → TSgt → MSgt", "CMSgt → SMSgt → MSgt", "MSgt → CMSgt → SMSgt"],
+    correct: 0,
+    explanation: "Master Sergeant (MSgt, E-7), Senior Master Sergeant (SMSgt, E-8), Chief Master Sergeant (CMSgt, E-9). At these senior NCO levels, Airmen take on significant leadership responsibilities. Only about 1% of enlisted reach CMSgt."
+  },
+
+  // RANKS - USAF OFFICERS
+  {
+    category: "USAF OFFICER RANKS",
+    text: "A Second Lieutenant in the Air Force wears which insignia?",
+    answers: ["Single gold bar", "Single silver bar", "Two gold bars", "Gold oak leaf"],
+    correct: 0,
+    explanation: "Second Lieutenant (2d Lt, O-1) wears a single gold bar. First Lieutenant (O-2) wears a single silver bar. This is counterintuitive to many — gold doesn't always mean higher rank in the military."
+  },
+  {
+    category: "USAF OFFICER RANKS",
+    text: "What does a Lieutenant Colonel wear as their insignia?",
+    answers: ["Silver oak leaf", "Gold oak leaf", "Silver eagle", "Two silver bars"],
+    correct: 0,
+    explanation: "Lieutenant Colonel (Lt Col, O-5) wears a silver oak leaf. Major (O-4) wears a gold oak leaf. Colonel (O-6) wears a silver eagle — often called a 'full bird Colonel.' These field grade officers are typically in significant leadership positions."
+  },
+  {
+    category: "USAF OFFICER RANKS",
+    text: "A one-star general in the Air Force holds which rank?",
+    answers: ["Brigadier General", "Major General", "Lieutenant General", "General"],
+    correct: 0,
+    explanation: "Brigadier General (Brig Gen, O-7) is a one-star general. Two-star is Major General (Maj Gen, O-8), three-star is Lieutenant General (Lt Gen, O-9), and four-star is General (Gen, O-10). A five-star General of the Air Force is only bestowed in wartime."
+  },
+  {
+    category: "USAF OFFICER RANKS",
+    text: "What pay grade is a Captain in the Air Force?",
+    answers: ["O-3", "O-4", "O-2", "O-5"],
+    correct: 0,
+    explanation: "Captain (Capt) is O-3, wearing two silver bars (called 'railroad tracks'). O-1 is 2d Lt (gold bar), O-2 is 1st Lt (silver bar). Captains often serve as flight commanders, flight leads, or section commanders."
+  },
+  {
+    category: "USAF OFFICER RANKS",
+    text: "How do you properly address a Lieutenant Colonel verbally?",
+    answers: ["Colonel", "Lieutenant", "Lieutenant Colonel", "Sir or Ma'am only"],
+    correct: 0,
+    explanation: "Lieutenant Colonels are addressed as 'Colonel' — NOT 'Lieutenant Colonel' or 'Lieutenant.' This applies verbally. Colonels (O-6) are also addressed as 'Colonel.' In writing, you use the full title. When in doubt, 'Sir' or 'Ma'am' is always safe."
+  },
+
+  // RANKS - SPACE FORCE
+  {
+    category: "SPACE FORCE RANKS",
+    text: "What is the term for an enlisted Space Force member equivalent to a USAF Airman?",
+    answers: ["Specialist", "Guardian", "Trooper", "Operator"],
+    correct: 0,
+    explanation: "All Space Force members — both officers and enlisted — are called 'Guardians.' The enlisted equivalent rank titles differ from the Air Force: E-1 is Specialist 1 (Spc1), up through Specialist 4 (Spc4), then Sergeant (Sgt), Technical Sergeant (TSgt), Master Sergeant (MSgt), Senior Master Sergeant (SMSgt), and Chief Master Sergeant (CMSgt)."
+  },
+  {
+    category: "SPACE FORCE RANKS",
+    text: "Space Force enlisted pay grades E-1 through E-4 are all called:",
+    answers: ["Specialist (Spc1–Spc4)", "Airman Basic through Senior Airman", "Private through Specialist", "Guardian First through Fourth Class"],
+    correct: 0,
+    explanation: "Space Force created unique enlisted rank names. E-1 through E-4 are Specialist 1, 2, 3, and 4 (abbreviated Spc1, Spc2, Spc3, Spc4). This distinguishes them from their Air Force counterparts and reflects the technical, specialized nature of Space Force missions."
+  },
+  {
+    category: "SPACE FORCE RANKS",
+    text: "Space Force officer ranks are the same as the Air Force EXCEPT the title 'General' is replaced by:",
+    answers: ["Space Force officer ranks are identical to USAF", "Field Marshal", "Commander", "Admiral"],
+    correct: 0,
+    explanation: "Space Force officer ranks are identical to Air Force officer ranks — Second Lieutenant through General. The names and insignia match. What's unique to USSF is the enlisted rank structure and the overall name 'Guardians' for all members."
+  },
+
+  // CAREER FIELDS / AFSCs
+  {
+    category: "CAREER FIELDS (AFSCs)",
+    text: "What does 'AFSC' stand for?",
+    answers: ["Air Force Specialty Code", "Air Force Service Category", "Airman Field Service Classification", "Air Force Skills Certification"],
+    correct: 0,
+    explanation: "AFSC stands for Air Force Specialty Code — the alphanumeric code that identifies an Airman's or Guardian's career field. Every Air Force and Space Force job has one. For example, 11F is Fighter Pilot, 13S is Space Operations, 3D1X2 is Cyber Systems Operations."
+  },
+  {
+    category: "CAREER FIELDS (AFSCs)",
+    text: "An officer with AFSC 13S is in which career field?",
+    answers: ["Space Operations", "Special Operations", "Strategic Intelligence", "Signals and Surveillance"],
+    correct: 0,
+    explanation: "13S is Space Operations — these are Space Force officers who operate satellites, missile warning systems, space surveillance, and other space assets. They're often called 'space operators' and are critical to GPS, communications, and reconnaissance missions. The '13' prefix denotes the Space Operations career field group."
+  },
+  {
+    category: "CAREER FIELDS (AFSCs)",
+    text: "The AFSC prefix '11' denotes which officer career field?",
+    answers: ["Pilot", "Navigator", "Space Operations", "Intelligence"],
+    correct: 0,
+    explanation: "'11' prefix is Pilot. So 11F is Fighter Pilot, 11B is Bomber Pilot, 11H is Helicopter Pilot, 11M is Mobility/Airlift Pilot, 11S is Special Operations Pilot. When you see a '1' in the first two digits of an officer AFSC, think aviation operations broadly."
+  },
+  {
+    category: "CAREER FIELDS (AFSCs)",
+    text: "What career field does AFSC 14N represent?",
+    answers: ["Intelligence Officer", "Navigator", "Nuclear Weapons", "Network Operations"],
+    correct: 0,
+    explanation: "14N is Intelligence Officer. These officers collect, analyze, and disseminate intelligence to support operational commanders. They might brief pilots before missions, analyze adversary capabilities, or support joint operations. The 'N' suffix helps distinguish the Intelligence prefix '14' from other officer career fields."
+  },
+  {
+    category: "CAREER FIELDS (AFSCs)",
+    text: "An Airman with an AFSC starting with '3D' is likely working in:",
+    answers: ["Cyber and Communications", "Operations and Aircrew", "Maintenance", "Medical"],
+    correct: 0,
+    explanation: "'3D' is the Cyberspace Support career field for enlisted Airmen. This includes 3D0 (Cyberspace Operations) and 3D1 (Cyberspace Systems). These Airmen manage networks, maintain IT infrastructure, conduct cyber operations, and support communications systems across the force."
+  },
+  {
+    category: "CAREER FIELDS (AFSCs)",
+    text: "What does the skill level '3' indicate in an enlisted AFSC (e.g., 3D1X2 → Apprentice is 3D132)?",
+    answers: ["Apprentice level", "Journeyman level", "Expert level", "Superintendent level"],
+    correct: 0,
+    explanation: "In the AFSC system, the skill level digit works as follows: 1 = Helper (no formal training), 3 = Apprentice (in tech school), 5 = Journeyman (qualified and proficient), 7 = Craftsman (supervisor level), 9 = Superintendent (senior enlisted leader). So a 3D152 is a Journeyman Cyber Systems Operator."
+  },
+
+  // ORGANIZATIONAL STRUCTURE
+  {
+    category: "ORG STRUCTURE",
+    text: "What is the smallest standard unit in the Air Force organizational hierarchy?",
+    answers: ["Flight", "Squadron", "Section", "Element"],
+    correct: 0,
+    explanation: "The basic unit hierarchy goes: Element → Flight → Squadron → Group → Wing → Numbered Air Force → MAJCOM. A Flight is typically the smallest organized unit, usually led by a Captain or Major. Squadrons (led by a Lieutenant Colonel) are the primary organizational unit where most Airmen work."
+  },
+  {
+    category: "ORG STRUCTURE",
+    text: "What rank typically commands a Wing in the Air Force?",
+    answers: ["Colonel (O-6)", "Lieutenant Colonel (O-5)", "Brigadier General (O-7)", "Major General (O-8)"],
+    correct: 0,
+    explanation: "A Colonel (O-6) typically commands a Wing — the basic operational unit of the Air Force, usually with 1,000–5,000+ people. This is often called a 'Wing King' position and is among the most prestigious command billets for a Colonel. Large wings or special situations may occasionally warrant a Brigadier General."
+  },
+  {
+    category: "ORG STRUCTURE",
+    text: "What does 'MAJCOM' stand for?",
+    answers: ["Major Command", "Major Combat Operations Mission", "Major Command Operations Management", "Master Command"],
+    correct: 0,
+    explanation: "MAJCOM stands for Major Command — the highest level commands reporting directly to Headquarters Air Force. Examples include Air Combat Command (ACC), Air Mobility Command (AMC), Air Force Special Operations Command (AFSOC), Air Force Space Command (became Space Force), and Pacific Air Forces (PACAF)."
+  },
+  {
+    category: "ORG STRUCTURE",
+    text: "The Space Force is organized under which department?",
+    answers: ["Department of the Air Force", "Department of Defense directly", "Department of the Navy", "Independent military branch"],
+    correct: 0,
+    explanation: "The United States Space Force (USSF) is organized under the Department of the Air Force — the same department that oversees the Air Force. The Secretary of the Air Force oversees both. This is similar to how the Marine Corps falls under the Department of the Navy. The USSF was established December 20, 2019."
+  },
+  {
+    category: "ORG STRUCTURE",
+    text: "What is the Space Force equivalent of an Air Force Wing?",
+    answers: ["Delta", "Squadron", "Field Command", "Corps"],
+    correct: 0,
+    explanation: "Space Force uses 'Delta' as its primary unit equivalent — similar in function to an Air Force Wing or Group. Deltas are led by Colonels. Below Deltas are Squadrons (led by Lt Colonels) and Flights. Above Deltas are Field Commands, which are the USSF equivalent of MAJCOMs."
+  },
+
+  // CUSTOMS & COURTESIES / PROTOCOLS
+  {
+    category: "CUSTOMS & PROTOCOLS",
+    text: "When a senior officer enters the room, who calls the room to attention?",
+    answers: ["The first person who sees them", "The ranking enlisted person", "Only the Commander", "Nobody — the Air Force doesn't do this"],
+    correct: 0,
+    explanation: "The first person to see the senior officer entering calls 'Room, Attention!' Everyone then stands at attention. The officer typically says 'Carry on' or 'At ease' to release the room. This applies when a Colonel or above enters, or when determined by the command's local customs."
+  },
+  {
+    category: "CUSTOMS & PROTOCOLS",
+    text: "What is the proper way to address a Chief Master Sergeant?",
+    answers: ["Chief", "Chief Master Sergeant", "Master Chief", "Senior Chief"],
+    correct: 0,
+    explanation: "Chief Master Sergeants (E-9) are called 'Chief.' Senior Master Sergeants (E-8) can be called 'Senior.' Master Sergeants (E-7) and below are typically addressed by rank and last name (e.g., 'Staff Sergeant Johnson'). 'Master Chief' is a Navy/Coast Guard term — never use it for Air Force or Space Force."
+  },
+  {
+    category: "CUSTOMS & PROTOCOLS",
+    text: "What does 'OPR' stand for in Air Force officer evaluation?",
+    answers: ["Officer Performance Report", "Officer Promotion Record", "Operational Performance Review", "Officer Personnel Record"],
+    correct: 0,
+    explanation: "OPR is the Officer Performance Report — the primary evaluation document for Air Force officers. It's written annually or at key career milestones. A strong OPR is critical for promotion. Enlisted evaluations are called EPRs (Enlisted Performance Reports). These documents significantly shape an Airman's career."
+  },
+  {
+    category: "CUSTOMS & PROTOCOLS",
+    text: "A 'PCS' in Air Force terminology means:",
+    answers: ["Permanent Change of Station", "Personnel Career Status", "Primary Combat Squadron", "Post Command Selection"],
+    correct: 0,
+    explanation: "PCS stands for Permanent Change of Station — a move to a new duty assignment at a different base or location. This is different from TDY (Temporary Duty), which is a short-term assignment away from your home station. Military families often move every 2–4 years via PCS orders."
+  },
+  {
+    category: "CUSTOMS & PROTOCOLS",
+    text: "What is 'TDY' in Air Force parlance?",
+    answers: ["Temporary Duty", "Training Duty Year", "Tactical Deployment Yearly", "Technical Duty Yardstick"],
+    correct: 0,
+    explanation: "TDY means Temporary Duty — a short-term assignment away from the member's permanent duty station. Could be for training, exercises, conferences, or mission support. Unlike PCS (permanent move), the member returns to their home station. A common phrase: 'I'm TDY to Nellis for two weeks.'"
+  },
+  {
+    category: "CUSTOMS & PROTOCOLS",
+    text: "What does 'SECAF' refer to?",
+    answers: ["Secretary of the Air Force", "Security Air Forces", "Senior Commander Air Force", "Special Operations Executive Command Air Force"],
+    correct: 0,
+    explanation: "SECAF is the Secretary of the Air Force — the civilian head of the Department of the Air Force, appointed by the President and confirmed by the Senate. The SECAF oversees both the Air Force and Space Force. The military head is the Chief of Staff of the Air Force (CSAF). Civilian control of the military means SECAF outranks CSAF."
+  },
+
+  // AIRCRAFT & MISSIONS
+  {
+    category: "AIRCRAFT & MISSIONS",
+    text: "The F-22 Raptor's primary mission is:",
+    answers: ["Air superiority (air-to-air)", "Close air support (CAS)", "Strategic bombing", "Reconnaissance"],
+    correct: 0,
+    explanation: "The F-22 Raptor is the Air Force's premier air superiority fighter — designed to dominate any adversary in the sky. It uses stealth, supercruise (supersonic without afterburner), and advanced avionics to defeat enemy aircraft before being detected. It's operated by 11F (Fighter Pilot) Airmen."
+  },
+  {
+    category: "AIRCRAFT & MISSIONS",
+    text: "The C-17 Globemaster III is primarily used for:",
+    answers: ["Strategic and tactical airlift", "Air superiority", "Strategic bombing", "Tanker refueling"],
+    correct: 0,
+    explanation: "The C-17 is a heavy military transport aircraft used for rapid strategic airlift of troops and cargo worldwide. It can also perform tactical airlift and airdrop missions, and can land on short, austere airstrips. It's a workhorse of Air Mobility Command (AMC), flown by 11M (Mobility Pilot) Airmen."
+  },
+  {
+    category: "AIRCRAFT & MISSIONS",
+    text: "What is the primary mission of the KC-135 Stratotanker?",
+    answers: ["Aerial refueling", "Reconnaissance", "Electronic warfare", "Troop transport"],
+    correct: 0,
+    explanation: "The KC-135 is the Air Force's primary aerial refueling tanker — extending the range and endurance of virtually every aircraft in the Air Force and many allied aircraft. Without tankers, long-range missions would be impossible. The newer KC-46 Pegasus is replacing the KC-135 in this mission."
+  },
+
+  // SPACE FORCE MISSIONS
+  {
+    category: "SPACE FORCE MISSIONS",
+    text: "Which Space Force mission involves detecting launches of ballistic missiles?",
+    answers: ["Missile Warning", "Space Control", "Space Launch", "Satellite Communications"],
+    correct: 0,
+    explanation: "Missile Warning is a critical Space Force mission using satellites (like the Space Based Infrared System, SBIRS) to detect ballistic missile launches anywhere on Earth. This provides critical early warning to national leadership. Operators in this career field work in underground command centers, monitoring global activity 24/7."
+  },
+  {
+    category: "SPACE FORCE MISSIONS",
+    text: "GPS (Global Positioning System) is operated by:",
+    answers: ["United States Space Force", "United States Air Force", "NOAA", "NASA"],
+    correct: 0,
+    explanation: "GPS is operated by the U.S. Space Force (previously the Air Force before USSF was established). The 2nd Space Operations Squadron (2 SOPS) at Schriever Space Force Base, Colorado manages the GPS constellation of satellites. GPS provides positioning, navigation, and timing for civilian and military users worldwide."
+  },
+  {
+    category: "SPACE FORCE MISSIONS",
+    text: "What is Space Situational Awareness (SSA)?",
+    answers: ["Tracking all objects in Earth orbit", "Monitoring weather from space", "Satellite communications", "Space launch operations"],
+    correct: 0,
+    explanation: "Space Situational Awareness (SSA) involves tracking, cataloging, and characterizing all objects in Earth orbit — including active satellites, defunct satellites, rocket bodies, and debris. The Space Force tracks over 27,000 objects. This is critical to prevent collisions and ensure the space domain remains usable."
+  },
+
+  // INSIGNIA & SYMBOLS
+  {
+    category: "INSIGNIA & PATCHES",
+    text: "The Air Force symbol (the 'Hap Arnold wings') prominently features:",
+    answers: ["A star with wings and the letter 'A'", "An eagle with spread wings", "A globe with a contrail", "An F-15 silhouette"],
+    correct: 0,
+    explanation: "The Air Force Symbol (adopted 2000) features a stylized wing with a star at top and the letter 'A' in the star. It's based on the old 'Hap Arnold' propeller-and-wings insignia from WWII and was designed to represent air and space. The Air Force's core values — Integrity, Service, Excellence — are often displayed with it."
+  },
+  {
+    category: "INSIGNIA & PATCHES",
+    text: "On Air Force uniforms, flight suits typically display name tapes and patches on which side?",
+    answers: ["Name/rank on right chest, unit patch on left arm", "Name on left, unit on right", "Both on chest only", "Patches are not worn on flight suits"],
+    correct: 0,
+    explanation: "On flight suits (CWU-27/P), the name tape is on the right chest, the flag is on the right shoulder, and the unit/squadron patch is typically on the left arm. Wings (pilot, navigator, etc.) are worn on the left chest. Velcro patches allow for mission-specific patches to be added and removed."
+  },
+  {
+    category: "INSIGNIA & PATCHES",
+    text: "What do gold wings with a star above them signify on an Air Force uniform?",
+    answers: ["Command Pilot wings", "Basic Pilot wings", "Navigator wings", "Space Operator wings"],
+    correct: 0,
+    explanation: "Command Pilot wings (with a star above the shield) signify a senior pilot with over 15 years of flying duty and 3,000+ flight hours who has performed in command of flying organizations. Basic Pilot wings have no additions. Senior Pilot wings have one star. Command Pilot is the highest aviator qualification."
+  },
+
+  // SPACE FORCE SPECIFIC
+  {
+    category: "SPACE FORCE",
+    text: "The Space Force motto is:",
+    answers: ["Semper Supra", "Aim High", "Guardians of the High Ground", "Ad Astra"],
+    correct: 0,
+    explanation: "'Semper Supra' is Latin for 'Always Above' — the Space Force motto. The Air Force motto is 'Aim High...Fly-Fight-Win.' The Marine Corps uses 'Semper Fidelis' (Always Faithful) and the Coast Guard uses 'Semper Paratus' (Always Ready). Don't confuse these."
+  },
+  {
+    category: "SPACE FORCE",
+    text: "The Space Force was established as the 6th branch of the U.S. military in which year?",
+    answers: ["2019", "2020", "2017", "2021"],
+    correct: 0,
+    explanation: "The U.S. Space Force was established December 20, 2019, when President Trump signed the National Defense Authorization Act. It became the first new military branch since the Air Force was separated from the Army in 1947. It's headquartered at the Pentagon with major installations at Peterson, Schriever, and Buckley Space Force Bases in Colorado."
+  },
+  {
+    category: "SPACE FORCE",
+    text: "What is the Space Force equivalent of the Air Force's 'Aim High' recruiting slogan?",
+    answers: ["Maybe I'll Reach", "Accelerate Change or Lose", "Semper Supra", "Delta Force Ahead"],
+    correct: 2,
+    explanation: "'Semper Supra' is the Space Force motto. 'Accelerate Change or Lose' is actually the title of a white paper by former CSAF General CQ Brown Jr., reflecting the Air Force's transformation imperative — but it also resonated with Space Force culture. The USSF recruiting tagline includes messaging around 'Guardian' identity."
+  },
+
+  // ADDITIONAL COMMON TERMS
+  {
+    category: "CUSTOMS & PROTOCOLS",
+    text: "What is a 'Top Three' in Air Force lingo?",
+    answers: ["An organization for E-7, E-8, and E-9 NCOs", "The three service core values", "Top three priority programs", "The three branches of senior leadership"],
+    correct: 0,
+    explanation: "The 'Top Three' is an NCO organization for Master Sergeants (E-7), Senior Master Sergeants (E-8), and Chief Master Sergeants (E-9) — the senior enlisted tier. Similar to the Airmen's Council for junior enlisted and NCO Councils for mid-grade NCOs. These organizations handle professional development, morale, and community events."
+  },
+  {
+    category: "CUSTOMS & PROTOCOLS",
+    text: "The Air Force core values are:",
+    answers: [
+      "Integrity First, Service Before Self, Excellence in All We Do",
+      "Honor, Courage, Commitment",
+      "Loyalty, Duty, Respect, Selfless Service, Honor, Integrity, Personal Courage",
+      "Fly, Fight, Win at Home, in the Air, and in Cyberspace"
+    ],
+    correct: 0,
+    explanation: "The USAF core values are: Integrity First, Service Before Self, Excellence in All We Do. These apply to both USAF and USSF. The Army uses 'Loyalty, Duty, Respect, Selfless Service, Honor, Integrity, Personal Courage' (LDRSHIP). Navy/Marines use 'Honor, Courage, Commitment.' Don't confuse them."
+  },
+  {
+    category: "CUSTOMS & PROTOCOLS",
+    text: "What is 'reveille' in a military context?",
+    answers: ["A morning bugle call marking the start of the duty day", "A rank ceremony", "A type of military formation", "An end-of-day tradition"],
+    correct: 0,
+    explanation: "Reveille is a morning bugle call traditionally played at sunrise to wake troops. On bases with a flag ceremony, when the bugle plays and the flag is raised, personnel in uniform outdoors should face the flag and render a salute. Those in civilian clothes place their right hand over their heart. It marks the official start of the duty day."
+  },
+
+  // ===== SPACE FORCE FIELD COMMANDS =====
+  {
+    category: "SF FIELD COMMANDS",
+    text: "What are the three Space Force field commands (FLDCOMs)?",
+    answers: [
+      "Combat Forces Command (CFC), Space Systems Command (SSC), Space Training and Readiness Command (STARCOM)",
+      "Space Operations Command (SpOC), Space Development Agency (SDA), STARCOM",
+      "USSPACECOM, SpOC, and Space Systems Command",
+      "Space Forces Space (S4S), SSC, and STARCOM"
+    ],
+    correct: 0,
+    explanation: "The three Space Force field commands are: Combat Forces Command (CFC, formerly SpOC — redesignated Nov 3, 2025), Space Systems Command (SSC, headquartered at Los Angeles AFB), and Space Training and Readiness Command (STARCOM, headquartered at Peterson SFB / relocating to Patrick SFB, FL). Each is led by a Lieutenant General (3-star) except STARCOM which is led by a Major General (2-star)."
+  },
+  {
+    category: "SF FIELD COMMANDS",
+    text: "What is the primary mission of Combat Forces Command (CFC, formerly SpOC)?",
+    answers: [
+      "Organize, train, equip, and present combat-ready space forces to combatant commanders",
+      "Develop and acquire new space systems and satellites",
+      "Train and educate space professionals and develop doctrine",
+      "Manage launch ranges at Vandenberg and Cape Canaveral"
+    ],
+    correct: 0,
+    explanation: "Combat Forces Command (CFC) — redesignated from Space Operations Command (SpOC) on November 3, 2025 — is the Space Force's primary force provider. It organizes, trains, equips, and presents combat-ready space forces for combatant commanders, coalition partners, and the joint force. It's headquartered at Peterson Space Force Base, Colorado."
+  },
+  {
+    category: "SF FIELD COMMANDS",
+    text: "Space Systems Command (SSC) is primarily responsible for:",
+    answers: [
+      "Acquiring, developing, launching, and sustaining space systems",
+      "Operating GPS and missile warning satellites day-to-day",
+      "Training Guardians in space operations",
+      "Commanding forces in actual space operations and combat"
+    ],
+    correct: 0,
+    explanation: "SSC is the Space Force's acquisition and development command, headquartered at Los Angeles Air Force Base (El Segundo, CA). It develops, acquires, launches, and sustains space systems for the warfighter. SSC manages the nation's space launch ranges and partners with NRO and commercial industry. It does NOT operate the systems it builds — that's CFC's job."
+  },
+  {
+    category: "SF FIELD COMMANDS",
+    text: "STARCOM's primary mission is:",
+    answers: [
+      "Training and educating Guardians, developing doctrine, and testing space capabilities",
+      "Acquiring and launching new satellites",
+      "Commanding space forces for USSPACECOM",
+      "Providing installation support to Space Force bases"
+    ],
+    correct: 0,
+    explanation: "Space Training and Readiness Command (STARCOM) trains and educates space professionals, develops warfighting doctrine and tactics, and tests and evaluates USSF capabilities. It's the Space Force's equivalent of Air Education and Training Command (AETC) plus doctrine development. STARCOM is led by a 2-star Major General and is relocating from Peterson SFB to Patrick SFB, Florida."
+  },
+
+  // ===== SPACE FORCE DELTAS =====
+  {
+    category: "SF DELTAS & SQUADRONS",
+    text: "Space Delta 2 (or Mission Delta 2) is responsible for:",
+    answers: [
+      "Space Domain Awareness (SDA) — tracking and characterizing objects in orbit",
+      "Missile warning and detection of ballistic launches",
+      "Satellite communications and GPS operations",
+      "Electromagnetic warfare against adversary space systems"
+    ],
+    correct: 0,
+    explanation: "Space Delta 2 (redesignated Mission Delta 2 in Oct 2024) conducts Space Domain Awareness (SDA) operations — tracking, identifying, and characterizing objects and activities in orbit. This includes operating sensors to maintain the space catalog and support battle management. It's located at Peterson SFB, Colorado. Think: 'Delta 2 = Domain Awareness.'"
+  },
+  {
+    category: "SF DELTAS & SQUADRONS",
+    text: "Space Delta 3 (Mission Delta 3) focuses on which mission area?",
+    answers: [
+      "Space Electromagnetic Warfare (EW) — jamming and protecting space signals",
+      "Space Domain Awareness",
+      "Orbital Warfare — maneuvering satellites defensively",
+      "Cyber operations against space ground systems"
+    ],
+    correct: 0,
+    explanation: "Space Delta 3 (Mission Delta 3) conducts Space Electromagnetic Warfare — operations in the electromagnetic spectrum to protect U.S. satellite signals and, when directed, deny adversary use of the EM spectrum for space operations. This includes radio frequency (RF) jamming capabilities. It was one of the first Integrated Mission Deltas (IMDs) prototyped under the new structure."
+  },
+  {
+    category: "SF DELTAS & SQUADRONS",
+    text: "Which Space Force delta is responsible for missile warning and tracking?",
+    answers: [
+      "Space Delta 4 (Mission Delta 4)",
+      "Space Delta 2",
+      "Space Delta 8",
+      "Space Delta 9"
+    ],
+    correct: 0,
+    explanation: "Space Delta 4 (Mission Delta 4) conducts missile warning and tracking, operating the Space Based Infrared System (SBIRS) and ground-based radars (GBRs). It detects and tracks ballistic missile launches and provides early warning to national leadership. Delta 4 is headquartered at Buckley Space Force Base, Colorado, and became a Mission Delta in late 2024."
+  },
+  {
+    category: "SF DELTAS & SQUADRONS",
+    text: "Space Delta 5 (CSpOC) is the Space Force's:",
+    answers: [
+      "Primary command and control center — executing space operations orders for USSPACECOM",
+      "Missile warning operations center",
+      "Satellite acquisition and launch planning hub",
+      "Training center for space operators"
+    ],
+    correct: 0,
+    explanation: "Space Delta 5 operates the Combined Space Operations Center (CSpOC) at Vandenberg SFB — the Space Force's primary operational C2 hub, modeled after an Air Force Air Operations Center (AOC). It executes operational command and control of space forces to achieve theater and global objectives for USSPACECOM and combatant commanders. Coalition partners from Australia, Canada, and the UK are embedded."
+  },
+  {
+    category: "SF DELTAS & SQUADRONS",
+    text: "Space Delta 6 is responsible for:",
+    answers: [
+      "The Satellite Control Network (AFSCN) and defensive cyber for space systems",
+      "Intelligence, Surveillance, and Reconnaissance",
+      "Orbital warfare and protect-and-defend operations",
+      "Space launch operations from the east coast"
+    ],
+    correct: 0,
+    explanation: "Space Delta 6 operates the Air Force Satellite Control Network (AFSCN) — the global network of ground antennas that provides telemetry, tracking, and commanding (TT&C) for satellites — and provides defensive cyber capabilities for space mission systems. It's headquartered at Schriever SFB, Colorado. Without Delta 6, many satellites couldn't be commanded or monitored."
+  },
+  {
+    category: "SF DELTAS & SQUADRONS",
+    text: "Space Delta 7's mission is:",
+    answers: [
+      "Intelligence, Surveillance, and Reconnaissance (ISR) for the space domain",
+      "Space electromagnetic warfare",
+      "Command and control of space forces",
+      "Satellite communications management"
+    ],
+    correct: 0,
+    explanation: "Space Delta 7 executes global ISR operations to gain and maintain information dominance in the space domain. Guardians employ fixed and mobile sensors worldwide to detect, characterize, and help target adversary space capabilities. Delta 7 descended from the 544th Intelligence, Surveillance and Reconnaissance Group — the Air Force's premier space intelligence unit."
+  },
+  {
+    category: "SF DELTAS & SQUADRONS",
+    text: "Space Delta 8 (Mission Delta 8) is focused on:",
+    answers: [
+      "Satellite Communications (SATCOM) and Navigational Warfare",
+      "Orbital warfare and space object maneuver",
+      "Missile warning tracking",
+      "Space cyber offensive operations"
+    ],
+    correct: 0,
+    explanation: "Space Delta 8 handles Satellite Communications (SATCOM) and Navigational Warfare — managing military satellite communications links and conducting operations related to GPS navigational warfare (protecting friendly GPS use and, when directed, degrading adversary use). The PNT (Positioning, Navigation, Timing) function was eventually hived off to its own Mission Delta 31."
+  },
+  {
+    category: "SF DELTAS & SQUADRONS",
+    text: "Space Delta 9 is the Space Force's unit for:",
+    answers: [
+      "Orbital warfare — protect and defend operations against orbital threats",
+      "Space domain awareness tracking",
+      "Missile defense integration",
+      "Satellite communications relay"
+    ],
+    correct: 0,
+    explanation: "Space Delta 9 conducts orbital warfare — preparing, presenting, and projecting forces to protect and defend U.S. and allied satellites, and providing national decision authorities response options to deter or defeat orbital threats. Delta 9 operates assets including the X-37B Orbital Test Vehicle, Geosynchronous Space Situational Awareness Program (GSSAP), and Space Based Space Surveillance (SBSS) system."
+  },
+  {
+    category: "SF DELTAS & SQUADRONS",
+    text: "Space Delta 18 at Wright-Patterson AFB is known as the:",
+    answers: [
+      "National Space Intelligence Center — providing intelligence on foreign space and counterspace capabilities",
+      "National Space Defense Center — defending satellites from attack",
+      "Space Warfare Center — testing offensive space capabilities",
+      "Space Operations Center — conducting 24/7 space ops"
+    ],
+    correct: 0,
+    explanation: "Space Delta 18 is the National Space Intelligence Center (NSIC), co-located with the National Air and Space Intelligence Center (NASIC) at Wright-Patterson AFB, Ohio. It delivers foundational intelligence on foreign space and counterspace capabilities to national leaders, joint warfighters, and acquisition professionals. Delta 18 took the number '18' because the Space Force became the 18th member of the U.S. Intelligence Community."
+  },
+
+  // ===== SPACE FORCE JOINT CONNECTIONS =====
+  {
+    category: "SF JOINT CONNECTIONS",
+    text: "What is 'S4S' in Space Force terminology?",
+    answers: [
+      "U.S. Space Forces – Space, the Space Force component to USSPACECOM",
+      "The 4th Space Squadron",
+      "Space Force Supply, Support, and Sustainment",
+      "Space Systems, Surveillance, and Security"
+    ],
+    correct: 0,
+    explanation: "S4S (Space Forces – Space) is the Space Force service component command to U.S. Space Command (USSPACECOM), established December 6, 2023. S4S commands combat forces in space superiority operations and delivers global space-enabled effects to the joint force. Its commander is dual-hatted as the Combined Joint Force Space Component Commander (CJFSCC). HQ is at Vandenberg SFB, California."
+  },
+  {
+    category: "SF JOINT CONNECTIONS",
+    text: "The commander of S4S is also dual-hatted as:",
+    answers: [
+      "Combined Joint Force Space Component Commander (CJFSCC)",
+      "Chief of Space Operations (CSO)",
+      "Commander, U.S. Space Command (CDRUSSPACECOM)",
+      "Director, National Space Defense Center"
+    ],
+    correct: 0,
+    explanation: "The S4S commander serves simultaneously as the Combined Joint Force Space Component Commander (CJFSCC) — the functional space component to USSPACECOM. This means one three-star general is both the Space Force service component commander AND the joint operational commander for space forces. The CJFSCC role replaced the earlier Combined Force Space Component Command (CFSCC) and Joint Task Force-Space Defense (JTF-SD) structure."
+  },
+  {
+    category: "SF JOINT CONNECTIONS",
+    text: "What is USSPACECOM's relationship to the Space Force?",
+    answers: [
+      "USSPACECOM is a combatant command that employs space forces; the Space Force organizes, trains, and equips them",
+      "USSPACECOM commands the Space Force directly",
+      "They are the same organization with different names",
+      "USSPACECOM is a Space Force subordinate command"
+    ],
+    correct: 0,
+    explanation: "This is a critical distinction. U.S. Space Command (USSPACECOM) is a unified combatant command under the President/SecDef — it EMPLOYS forces. The U.S. Space Force (USSF) is a military service under the Department of the Air Force — it ORGANIZES, TRAINS, and EQUIPS forces. The Space Force provides forces to USSPACECOM to conduct space operations. This mirrors the Army/Air Force providing forces to geographic combatant commands."
+  },
+  {
+    category: "SF JOINT CONNECTIONS",
+    text: "The National Space Defense Center (NSDC) is located at:",
+    answers: [
+      "Schriever Space Force Base, Colorado",
+      "Peterson Space Force Base, Colorado",
+      "Vandenberg Space Force Base, California",
+      "Cheyenne Mountain Space Force Station, Colorado"
+    ],
+    correct: 0,
+    explanation: "The NSDC is at Schriever Space Force Base (Colorado Springs area). It integrates DoD, intelligence community, NRO, and commercial space partners for unified space defense operations — it's a joint, multi-agency operations center focused on space threat response. Space Delta 15 provides the Space Force's command and control capability to the NSDC."
+  },
+  {
+    category: "SF JOINT CONNECTIONS",
+    text: "Space Delta 15's primary role is:",
+    answers: [
+      "Providing USSF C2, ISR, and cyber support to the National Space Defense Center (NSDC)",
+      "Operating satellite control networks worldwide",
+      "Conducting missile warning operations",
+      "Training space operators for CFC"
+    ],
+    correct: 0,
+    explanation: "Space Delta 15 is the Space Force's force presentation unit to the NSDC and USSPACECOM's protect-and-defend mission. It provides mission-ready C2 crew forces, ISR capabilities, and cyber defense support to the NSDC. DEL 15's colonel is triple-hatted as: DEL 15 commander, NSDC Director, and S4S Director of Operations. Activated March 10, 2023, at Schriever SFB."
+  },
+  {
+    category: "SF JOINT CONNECTIONS",
+    text: "What is the Combined Space Operations Center (CSpOC)?",
+    answers: [
+      "The Space Force's primary joint operational C2 center for space forces, supporting USSPACECOM",
+      "A classified NRO operations facility",
+      "The command center for missile defense operations",
+      "A training simulation center for space operators"
+    ],
+    correct: 0,
+    explanation: "The CSpOC (operated by Space Delta 5 at Vandenberg SFB) is the joint space operations hub — modeled on the Air Force's Air Operations Center concept. It executes 24/7 command and control of space forces for USSPACECOM. Coalition partners from Australia, Canada, and the UK are embedded. It works closely with the NSDC, NRO Operations Center, and partner nation space operations centers."
+  },
+  {
+    category: "SF JOINT CONNECTIONS",
+    text: "The Space Force has established space component commands at which combatant commands?",
+    answers: [
+      "USINDOPACOM, USEUCOM, USCENTCOM, and USSPACECOM (via S4S)",
+      "Only USSPACECOM",
+      "NORTHCOM, SOUTHCOM, and AFRICOM",
+      "All 11 combatant commands"
+    ],
+    correct: 0,
+    explanation: "The Space Force has embedded space component commands to integrate space capabilities at key combatant commands — including U.S. Indo-Pacific Command (USINDOPACOM), U.S. European Command (USEUCOM), U.S. Central Command (USCENTCOM), and U.S. Forces Korea (USFK). These components provide combatant commanders with space planning expertise and C2 of space forces within their area of responsibility."
+  },
+
+  // ===== JOINT PLANNING STAFF FUNCTIONS =====
+  {
+    category: "JOINT PLANNING (J-CODES)",
+    text: "In joint military headquarters, what does 'J2' designate?",
+    answers: [
+      "Intelligence directorate",
+      "Operations directorate",
+      "Logistics directorate",
+      "Plans and policy directorate"
+    ],
+    correct: 0,
+    explanation: "In joint headquarters (J-codes), J1=Personnel, J2=Intelligence, J3=Operations, J4=Logistics, J5=Plans and Policy/Strategy, J6=Communications/C4, J7=Training, J8=Programs/Resources (budget/requirements). At Space Force HQ (S-codes), they parallel: S2=Intelligence, S3=Operations, S5=Strategy/Plans/Programs/Requirements, S8=Programs. When you see 'J2' briefing a commander, they're the intelligence shop."
+  },
+  {
+    category: "JOINT PLANNING (J-CODES)",
+    text: "A J5 in a joint headquarters is responsible for:",
+    answers: [
+      "Strategy, plans, and policy — long-range planning and campaign plans",
+      "Day-to-day current operations",
+      "Communications and network infrastructure",
+      "Intelligence collection and analysis"
+    ],
+    correct: 0,
+    explanation: "J5 is the Strategy, Plans, and Policy directorate — responsible for long-range planning, campaign plans, operational plans (OPLANs), policy development, and strategic partnerships. At Space Force HQ, the equivalent is S5. J5 works on deliberate planning (thinking months to years ahead), while J3 handles current operations execution. If someone says 'the J5 is working the OPLAN,' they're developing the strategic plan."
+  },
+  {
+    category: "JOINT PLANNING (J-CODES)",
+    text: "What does the J8 directorate handle in a joint military headquarters?",
+    answers: [
+      "Programs, resources, and requirements — budget and force structure",
+      "Special operations and sensitive activities",
+      "Cyber operations",
+      "Medical and health services"
+    ],
+    correct: 0,
+    explanation: "J8 handles Programs, Resources, and Requirements — essentially the budget, force structure, and capabilities requirements for the command. They work the Program Objective Memorandum (POM), manage resources, and advocate for future capabilities. At USSPACECOM, the J8 advocates for space force requirements and resources across the DoD. If you hear 'the J8 is fighting for funding,' they're in the resource wars."
+  },
+  {
+    category: "JOINT PLANNING (J-CODES)",
+    text: "The J3 in a joint headquarters is responsible for:",
+    answers: [
+      "Current operations — executing orders and managing ongoing missions",
+      "Intelligence analysis",
+      "Long-range strategic planning",
+      "Communications systems"
+    ],
+    correct: 0,
+    explanation: "J3 is the Operations directorate — responsible for current operations, battle rhythm management, force employment, and execution of the commander's orders. The J3 runs the ops center, manages the daily battle rhythm, and controls the operations floor. At CSpOC (Space Delta 5), the equivalent is the Combat Operations Division (COD). J3 is often the most frenetic shop in any headquarters."
+  },
+  {
+    category: "JOINT PLANNING (J-CODES)",
+    text: "At Space Force headquarters, staff directorates use 'S-codes' instead of 'J-codes.' What does 'S5/8' refer to?",
+    answers: [
+      "Strategy, Plans, Programs, Requirements, and Analysis — combined strategy and resources shop",
+      "Space surveillance and signals intelligence",
+      "5th and 8th Space Wings",
+      "Special operations and cyber"
+    ],
+    correct: 0,
+    explanation: "At Space Force HQ (Space Staff), directorates use 'S' prefix. S5/8 is combined: DCSO (Deputy Chief of Space Operations) for Strategy, Plans, Programs, Requirements, and Analysis — integrating long-range strategy (S5) with resource programming and requirements (S8). This is where force design decisions and resource advocacy happen at the service level. At operational units (SpOC/S4S), you see S3, S4, S5, S6 etc."
+  },
+
+  // ===== INTEGRATED MISSION DELTAS =====
+  {
+    category: "SF DELTAS & SQUADRONS",
+    text: "What is an 'Integrated Mission Delta' (IMD) in the Space Force?",
+    answers: [
+      "A unit that combines operators, acquisition/sustainment personnel, cyber, and intel under one commander for a specific mission area",
+      "A classified joint operations center combining all space missions",
+      "A delta that works alongside Army and Navy units",
+      "A training delta that integrates all career fields"
+    ],
+    correct: 0,
+    explanation: "An Integrated Mission Delta (IMD) is a Space Force organizational innovation that unifies operators (from CFC/SpOC), acquisition/sustainment engineers (from SSC), cyber specialists, and intelligence personnel under a single colonel commander. The goal: get system fixes, software updates, and operational decisions made faster by having the whole team in one chain of command. Delta 3 (EW) and Delta 4 (missile warning) were early IMD conversions."
+  },
+  {
+    category: "SF DELTAS & SQUADRONS",
+    text: "Space Launch Deltas 30 and 45 are responsible for:",
+    answers: [
+      "Launch operations from Vandenberg SFB (west coast) and Cape Canaveral SFS (east coast) respectively",
+      "Launching offensive counterspace weapons",
+      "Launching satellites from both coasts and the Gulf of Mexico",
+      "Testing and evaluating new launch vehicles"
+    ],
+    correct: 0,
+    explanation: "Space Launch Delta 30 (Vandenberg SFB, CA) manages all polar and high-inclination launches from the West Coast, including the Western Range. Space Launch Delta 45 (Cape Canaveral SFS, FL) manages eastward launches into equatorial orbits from the Eastern Range. Both support DoD, NASA, NRO, and commercial launches. Together they are the nation's primary space launch infrastructure, now under Space Systems Command (SSC)."
+  },
+
+  // ===== SPACE FORCE / JOINT TERMINOLOGY =====
+  {
+    category: "SF JOINT CONNECTIONS",
+    text: "What is 'Olympic Defender' in the context of space operations?",
+    answers: [
+      "A coalition space operations framework connecting U.S., Australian, Canadian, UK, and other allied space centers",
+      "An annual joint exercise simulating satellite attacks",
+      "The Space Force's classified counterspace offensive capability",
+      "The name for the X-37B orbital test vehicle program"
+    ],
+    correct: 0,
+    explanation: "Olympic Defender is the framework for combined space operations between the U.S. and key allies — Australia (AUSSpOC), Canada (CANSpOC), United Kingdom (UKSpOC), and others. S4S coordinates allied space activities under this framework. Partners share space domain awareness data, embed personnel at the CSpOC, and work to present a unified allied space posture. It's the space equivalent of the Five Eyes intelligence partnership applied to operations."
+  },
+  {
+    category: "SF JOINT CONNECTIONS",
+    text: "What does CDO stand for in Space Force operational context?",
+    answers: [
+      "Contested, Degraded, Operationally-limited environment — the threat scenario Guardians train to fight in",
+      "Combat Delta Operations",
+      "Cyberspace Defense Operations",
+      "Combined Defense Orbit"
+    ],
+    correct: 0,
+    explanation: "CDO stands for Contested, Degraded, Operationally-limited — the operating environment Space Force units train to operate in. 'Contested' means adversaries are actively trying to deny, degrade, or destroy space capabilities. 'Degraded' means systems may be partially degraded from EW or cyber. 'Operationally-limited' means operations may be constrained. STARCOM specifically trains forces to 'prevail in a CDO all-domain environment.'"
+  },
+  {
+    category: "SF JOINT CONNECTIONS",
+    text: "What is the Joint Space Tasking Order (JSTO)?",
+    answers: [
+      "The operational order coordinating and directing space forces across the joint force, similar to the Air Tasking Order",
+      "A training schedule for joint space exercises",
+      "A congressional report on space force requirements",
+      "The command order activating Space Force units for deployment"
+    ],
+    correct: 0,
+    explanation: "The Joint Space Tasking Order (JSTO) is the operational order that coordinates and directs space force activities across the joint force — analogous to the Air Tasking Order (ATO) in air operations. The NSDC executes missions from the JSTO. It synchronizes space effects with joint operations and allocates space resources to combatant commanders. Understanding the JSTO cycle is key for anyone working at a joint space headquarters."
+  },
+  {
+    category: "SF JOINT CONNECTIONS",
+    text: "The Space Force's 'force presentation' model means:",
+    answers: [
+      "Space Force units are organized, trained, and equipped by field commands, then presented to combatant commanders for employment",
+      "The Space Force presents capabilities directly to Congress for funding",
+      "Guardians present briefings to senior leaders about space threats",
+      "Space systems are presented to allies for coalition use"
+    ],
+    correct: 0,
+    explanation: "Force presentation is the Space Force model where field commands (CFC, SSC, STARCOM) organize, train, and equip units, then 'present' those forces to combatant commanders (via S4S/CJFSCC to USSPACECOM, or space component commands to geographic CCMDs) for employment. This mirrors how the Air Force presents forces to CCMDs through Air Forces components. Space Delta 5 presents forces to CSpOC; Delta 15 presents to the NSDC."
+  },
+
+  // ===== USAF & USSF BASE LOCATIONS =====
+
+  // --- USSF Bases ---
+  {
+    category: "BASE LOCATIONS",
+    text: "Peterson Space Force Base — headquarters of Combat Forces Command (CFC) — is located in which state?",
+    answers: ["Colorado", "California", "Florida", "Virginia"],
+    correct: 0,
+    explanation: "Peterson SFB is in Colorado Springs, Colorado, and serves as the headquarters of Combat Forces Command (formerly SpOC) and Space Base Delta 1. It's also co-located with HQ USSPACECOM and NORAD/NORTHCOM at the Colorado Springs complex. The area around Colorado Springs is sometimes called the 'Space Coast of the Rockies' due to the concentration of space mission units."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "Schriever Space Force Base — home of the National Space Defense Center and Space Delta 6 — is near which city?",
+    answers: ["Colorado Springs, Colorado", "Denver, Colorado", "Colorado Springs, Colorado", "Pueblo, Colorado"],
+    correct: 0,
+    explanation: "Schriever SFB is located about 15 miles east of Colorado Springs, Colorado. It hosts the NSDC (National Space Defense Center), Space Delta 6 (Satellite Control Network), and numerous space operations squadrons including GPS and satellite control units. Schriever is one of the most operationally critical Space Force installations — 24/7 ops never stop there."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "Vandenberg Space Force Base — home of CSpOC (Space Delta 5) and the Western launch range — is located in:",
+    answers: ["California", "Florida", "Texas", "New Mexico"],
+    correct: 0,
+    explanation: "Vandenberg SFB is on the central California coast near Lompoc, about 130 miles northwest of Los Angeles. It hosts Space Delta 5 (CSpOC), Space Launch Delta 30 (Western Range), and S4S headquarters. Vandenberg launches all polar-orbit satellites — the Pacific Ocean to the west provides the necessary clear flight corridor. It's also the location of ICBM test launches for the Air Force."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "Cape Canaveral Space Force Station and Patrick Space Force Base are located in:",
+    answers: ["Florida", "Georgia", "South Carolina", "Virginia"],
+    correct: 0,
+    explanation: "Both are on Florida's Space Coast — Cape Canaveral SFS is the launch complex (home of Space Launch Delta 45 and the Eastern Range), and Patrick SFB is the adjacent installation that provides base support. This is where the Kennedy Space Center is also located. Most eastward equatorial-orbit launches happen here, including GPS, communications satellites, and many commercial missions."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "Buckley Space Force Base — home of Space Delta 4 (missile warning) — is located near which major city?",
+    answers: ["Denver, Colorado", "Colorado Springs, Colorado", "Albuquerque, New Mexico", "Salt Lake City, Utah"],
+    correct: 0,
+    explanation: "Buckley SFB is in Aurora, Colorado, immediately east of Denver. It's home to Space Delta 4 (missile warning operations using SBIRS and ground-based radars) and Space Base Delta 2 (installation management). Several intelligence and missile warning squadrons operate 24/7 there, monitoring for ballistic missile launches globally."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "Cheyenne Mountain Space Force Station — the famous underground complex — is built into which mountain?",
+    answers: ["Cheyenne Mountain, Colorado", "Pikes Peak, Colorado", "Mount Evans, Colorado", "Granite Mountain, Nevada"],
+    correct: 0,
+    explanation: "Cheyenne Mountain SFS is tunneled deep into Cheyenne Mountain just south of Colorado Springs, Colorado. Built during the Cold War as a hardened command center for NORAD, it now serves as an alternate command center for USSPACECOM and NORAD. The facility sits on giant shock absorbers to survive nuclear near-misses. Today it is 'warm' — maintained and ready but not continuously staffed for primary operations."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "Space Systems Command (SSC) is headquartered at Los Angeles Air Force Base, which is actually located in:",
+    answers: ["El Segundo, California", "Los Angeles proper, California", "Long Beach, California", "Torrance, California"],
+    correct: 0,
+    explanation: "Despite the name, Los Angeles Air Force Base is actually located in El Segundo, California — adjacent to LAX airport. It's SSC's headquarters and where space acquisition programs have been managed since the 1950s. The proximity to LA's aerospace industry (Aerospace Corporation, Northrop, Raytheon, etc.) is intentional — SSC works closely with defense contractors developing space systems."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "The National Space Intelligence Center (Space Delta 18) is co-located with NASIC at which Air Force base?",
+    answers: ["Wright-Patterson AFB, Ohio", "Scott AFB, Illinois", "Peterson SFB, Colorado", "Langley AFB, Virginia"],
+    correct: 0,
+    explanation: "Space Delta 18 is at Wright-Patterson AFB near Dayton, Ohio, co-located with the National Air and Space Intelligence Center (NASIC). The Dayton area has a long aerospace intelligence heritage — this is where foreign aircraft are analyzed, adversary space capabilities are assessed, and technical intelligence on enemy systems is produced. NASIC is the Air Force's primary source of aerospace technical intelligence."
+  },
+
+  // --- USAF Major Bases ---
+  {
+    category: "BASE LOCATIONS",
+    text: "Air Force Global Strike Command (AFGSC) — responsible for nuclear bombers and ICBMs — is headquartered at:",
+    answers: ["Barksdale AFB, Louisiana", "Minot AFB, North Dakota", "Warren AFB, Wyoming", "Whiteman AFB, Missouri"],
+    correct: 0,
+    explanation: "Barksdale AFB in Bossier City, Louisiana, is AFGSC headquarters. AFGSC controls the B-52, B-2, and B-21 bombers plus Minuteman III ICBMs. Specific wings are spread nationally: B-52s at Barksdale and Minot (ND); B-2s at Whiteman (MO); ICBMs at Malmstrom (MT), Minot (ND), and Warren (WY). The nuclear enterprise requires you to know these locations."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "Air Combat Command (ACC) — the USAF's primary combat air force command — is headquartered at:",
+    answers: ["Langley AFB, Virginia", "Andrews AFB, Maryland", "MacDill AFB, Florida", "Scott AFB, Illinois"],
+    correct: 0,
+    explanation: "Air Combat Command (ACC) is headquartered at Langley AFB (now Joint Base Langley-Eustis) in Hampton, Virginia. ACC provides combat air forces to geographic combatant commanders — fighters, bombers, reconnaissance, and command-and-control aircraft. Langley is also home to the 1st Fighter Wing (F-22 Raptors) and Air Force Command's air component to the Pentagon."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "Air Mobility Command (AMC) — which manages tankers and transport aircraft — is headquartered at:",
+    answers: ["Scott AFB, Illinois", "McChord AFB, Washington", "Travis AFB, California", "Dover AFB, Delaware"],
+    correct: 0,
+    explanation: "AMC is headquartered at Scott AFB in Belleville, Illinois (near St. Louis). AMC controls the C-17, C-5, KC-135, and KC-46 fleets. Scott AFB also co-hosts U.S. Transportation Command (USTRANSCOM), making it a major logistics hub. Key AMC bases include Dover AFB (DE), Travis AFB (CA), McChord AFB (WA), and Charleston AFB (SC)."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "Air Education and Training Command (AETC) — which runs Basic Military Training — is headquartered at:",
+    answers: ["Randolph AFB, Texas", "Lackland AFB, Texas", "Maxwell AFB, Alabama", "Keesler AFB, Mississippi"],
+    correct: 0,
+    explanation: "AETC is headquartered at Randolph AFB (JBSA-Randolph) in San Antonio, Texas. The Air Force's Basic Military Training (BMT) is conducted at Lackland AFB (JBSA-Lackland), also in San Antonio. Maxwell AFB in Montgomery, Alabama hosts Air University — the AF's graduate-level professional military education. AETC manages the entire pipeline from BMT through advanced training."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "Where is the U.S. Air Force Academy located?",
+    answers: ["Colorado Springs, Colorado", "Annapolis, Maryland", "West Point, New York", "Montgomery, Alabama"],
+    correct: 0,
+    explanation: "The USAF Academy is in Colorado Springs, Colorado — on the north side of the city, with Pikes Peak as a backdrop. It was established in 1954 and graduated its first class in 1959. About 4,000 cadets are enrolled at any time. The Academy's distinctive Chapel is an iconic triangular spire structure. Graduates earn a BS degree and are commissioned as Second Lieutenants."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "Nellis AFB — home of the Air Force Weapons School and Red Flag exercises — is near which city?",
+    answers: ["Las Vegas, Nevada", "Phoenix, Arizona", "Albuquerque, New Mexico", "Tucson, Arizona"],
+    correct: 0,
+    explanation: "Nellis AFB is just northeast of Las Vegas, Nevada. It's one of the most operationally significant USAF bases — hosting the Air Force Weapons School (the graduate-level weapons and tactics program), Red Flag (the premier multi-service air combat exercise), and the Nevada Test and Training Range. The massive NTTR airspace over the Nevada desert makes it ideal for complex, realistic training. The 57th Wing is the host unit."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "Eglin AFB — the largest Air Force base in the world by land area — is located in:",
+    answers: ["Florida (Florida Panhandle)", "Texas", "New Mexico", "California"],
+    correct: 0,
+    explanation: "Eglin AFB covers about 720 square miles in the Florida Panhandle near Fort Walton Beach/Valparaiso, FL. It's home to Air Force Materiel Command's armament directorate, the 96th Test Wing, and numerous test and development programs for air-delivered weapons. The Army's 7th Special Forces Group and various joint special operations units also operate there. The Gulf of Mexico range supports weapons testing."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "MacDill AFB in Tampa, Florida is most notable for hosting:",
+    answers: [
+      "U.S. Central Command (USCENTCOM) and U.S. Special Operations Command (USSOCOM)",
+      "Air Combat Command headquarters",
+      "Air Force Materiel Command and test units",
+      "Strategic nuclear bomber forces"
+    ],
+    correct: 0,
+    explanation: "MacDill AFB in Tampa hosts two of the most critical combatant commands: U.S. Central Command (USCENTCOM — responsible for the Middle East, Central and South Asia) and U.S. Special Operations Command (USSOCOM). Anyone working with operations in the CENTCOM AOR will interface with MacDill. The 6th Air Refueling Wing provides KC-135 tanker support."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "Whiteman AFB — home of the B-2 Spirit stealth bomber — is located in which state?",
+    answers: ["Missouri", "Kansas", "Oklahoma", "Arkansas"],
+    correct: 0,
+    explanation: "Whiteman AFB is near Knob Noster, Missouri. It's home to the 509th Bomb Wing, which operates all B-2 Spirit stealth bombers — the Air Force's primary penetrating nuclear-capable strike platform. The B-2 can strike targets anywhere on earth in a single sortie with aerial refueling. Whiteman is also where the 131st Bomb Wing (MO Air National Guard) operates B-2s alongside active duty."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "Minot AFB in North Dakota is unique because it hosts both:",
+    answers: [
+      "B-52 Stratofortress bombers AND Minuteman III ICBMs",
+      "F-22 Raptors AND KC-135 tankers",
+      "B-2 bombers AND cruise missile arsenals",
+      "F-35s AND drone operations"
+    ],
+    correct: 0,
+    explanation: "Minot AFB — nicknamed 'The Only Minot' — is one of only two installations with both nuclear bombers and ICBMs (the other is Malmstrom for ICBMs only). The 5th Bomb Wing flies B-52s and the 91st Missile Wing operates Minuteman IIIs in silos spread across North Dakota. Minot's winters are brutal — temperatures of -40°F are possible — and it's considered a challenging assignment."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "Creech AFB — the primary hub for Air Force remotely piloted aircraft (RPA/drone) operations — is located near:",
+    answers: ["Las Vegas, Nevada", "San Antonio, Texas", "Tucson, Arizona", "Reno, Nevada"],
+    correct: 0,
+    explanation: "Creech AFB is about 45 miles northwest of Las Vegas in Indian Springs, Nevada. It's the Air Force's primary base for operating MQ-9 Reapers in combat — crews at Creech fly missions in real time over Afghanistan, the Middle East, and Africa from their Nevada ground control stations. The 432nd Wing and 432nd Air Expeditionary Wing are the primary units. Drone crews can commute to work and conduct combat ops the same day."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "Kirtland AFB — home of the Air Force Nuclear Weapons Center — is located in:",
+    answers: ["Albuquerque, New Mexico", "Los Alamos, New Mexico", "Colorado Springs, Colorado", "Las Vegas, Nevada"],
+    correct: 0,
+    explanation: "Kirtland AFB is within Albuquerque, New Mexico. It hosts the Air Force Nuclear Weapons Center, the Air Force Research Laboratory Space Vehicles Directorate, the Space Rapid Capabilities Office (RCO), Sandia National Laboratories (on the base), and the 58th Special Operations Wing (training for CV-22 Osprey, HH-60, etc.). It's a critical node for both nuclear weapons management and space research."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "Air Force Special Operations Command (AFSOC) is headquartered at:",
+    answers: ["Hurlburt Field, Florida", "MacDill AFB, Florida", "Fort Bragg, North Carolina", "Eglin AFB, Florida"],
+    correct: 0,
+    explanation: "AFSOC is headquartered at Hurlburt Field in the Florida Panhandle (Fort Walton Beach area), adjacent to Eglin AFB. Hurlburt is the spiritual and operational home of Air Force special operations — AC-130 gunships, CV-22 Ospreys, and MC-130J Commando IIs all operate there. Air Force Special Operations forces support SOCOM missions globally."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "The 'Pentagon of the Pacific' — Hickam Field / Joint Base Pearl Harbor-Hickam — is located in:",
+    answers: ["Hawaii", "Guam", "Japan", "Philippines"],
+    correct: 0,
+    explanation: "Joint Base Pearl Harbor-Hickam (JBPHH) is on Oahu, Hawaii, adjacent to the famous Pearl Harbor Naval Station. It hosts Pacific Air Forces (PACAF) headquarters, the 15th Wing (F-22s), and numerous joint units. Hickam was attacked alongside Pearl Harbor on December 7, 1941. JBPHH is a key hub for INDOPACOM operations and the Air Force's gateway to the Pacific theater."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "Ramstein Air Base — the largest U.S. Air Force base outside the continental U.S. — is located in:",
+    answers: ["Germany", "United Kingdom", "Italy", "Spain"],
+    correct: 0,
+    explanation: "Ramstein AB is in Rhineland-Palatinate, Germany, near Kaiserslautern. It's the headquarters of U.S. Air Forces in Europe – Air Forces Africa (USAFE-AFAFRICA) and NATO's Allied Air Command. Ramstein serves as a critical logistics and air bridge hub — virtually all Air Force personnel and cargo moving to EUCOM and CENTCOM AORs flow through Ramstein. It hosted over 80,000 Afghan evacuees during Operation Allies Refuge in 2021."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "Kadena Air Base — the 'Keystone of the Pacific' — is located in:",
+    answers: ["Okinawa, Japan", "Mainland Japan (near Tokyo)", "South Korea", "Guam"],
+    correct: 0,
+    explanation: "Kadena AB is on Okinawa, Japan, and is the largest U.S. Air Force base in Asia. It's home to Pacific Air Forces' 18th Wing — the Air Force's largest combat wing — which historically operated F-15C/D Eagles. Kadena is strategically positioned within striking range of potential flashpoints in the Taiwan Strait and South China Sea. Its location on Okinawa has been a persistent diplomatic and political issue with Japan."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "Andersen AFB — a key USAF strategic hub — is located on which U.S. territory?",
+    answers: ["Guam", "Puerto Rico", "American Samoa", "U.S. Virgin Islands"],
+    correct: 0,
+    explanation: "Andersen AFB is on the northern tip of Guam, the westernmost U.S. territory in the Pacific. It's a crucial strategic base for projecting power into the Western Pacific and serves as a rotational hub for bombers (B-52s, B-1s, B-2s), tankers, and ISR assets. Andersen is the USAF's primary forward-operating location in the INDOPACOM AOR and is increasingly important given China's rising military activity in the region."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "Wright-Patterson AFB — one of the USAF's largest and most important research bases — is located near which city?",
+    answers: ["Dayton, Ohio", "Columbus, Ohio", "Cincinnati, Ohio", "Cleveland, Ohio"],
+    correct: 0,
+    explanation: "Wright-Patterson AFB is just east of Dayton, Ohio — named after the Wright Brothers (who conducted their historic flight experiments nearby) and Lt. Frank Patterson (killed in a 1918 crash). It hosts Air Force Materiel Command (AFMC) HQ, the Air Force Research Laboratory (AFRL), NASIC (National Air and Space Intelligence Center), and the National Museum of the USAF — the world's largest aviation museum. Dayton is historic ground for military aviation."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "Offutt AFB — home to U.S. Strategic Command (USSTRATCOM) — is located near:",
+    answers: ["Omaha, Nebraska", "Kansas City, Missouri", "Des Moines, Iowa", "Wichita, Kansas"],
+    correct: 0,
+    explanation: "Offutt AFB is in Bellevue, Nebraska, just south of Omaha. It hosts U.S. Strategic Command (USSTRATCOM) — responsible for nuclear deterrence, space, cyber, and missile defense — and the 55th Wing, which operates RC-135 reconnaissance aircraft and E-4B 'Doomsday Planes' (the airborne command posts for the President and SecDef). Offutt is a critical command node for national strategic operations."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "Joint Base San Antonio (JBSA) combines several installations in Texas including Lackland, Randolph, and:",
+    answers: ["Fort Sam Houston", "Camp Bullis only", "Bergstrom AFB", "Brooks AFB"],
+    correct: 0,
+    explanation: "JBSA combines Lackland AFB (BMT, Security Forces training), Randolph AFB (AETC HQ, pilot training), Fort Sam Houston (Army medical), and Camp Bullis (training range). San Antonio is arguably the single most important USAF training city — Basic Military Training for all enlisted Airmen and Guardians occurs at Lackland. Keesler AFB (Biloxi, MS) and Sheppard AFB (Wichita Falls, TX) are other major technical training bases."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "F.E. Warren AFB in Cheyenne, Wyoming is primarily known for:",
+    answers: [
+      "Operating Minuteman III ICBMs across Wyoming, Colorado, and Nebraska",
+      "B-52 bomber operations",
+      "Space launch operations",
+      "Fighter pilot training"
+    ],
+    correct: 0,
+    explanation: "F.E. Warren AFB is the oldest active-duty Air Force installation — a former frontier fort dating to 1867. Today the 90th Missile Wing operates 150 Minuteman III ICBMs in silos spread across Wyoming, Colorado, and Nebraska. Warren's missile operators work in underground launch control facilities, on alert 24/7, ready to launch within minutes of an authorized order. It's also close to USSPACECOM's future home at Redstone Arsenal."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "Beale AFB in California is the home of which unique reconnaissance platform?",
+    answers: [
+      "U-2 Dragon Lady high-altitude reconnaissance aircraft",
+      "SR-71 Blackbird (still operational)",
+      "RQ-4 Global Hawk only",
+      "RC-135 Rivet Joint"
+    ],
+    correct: 0,
+    explanation: "Beale AFB (near Marysville, CA) is home to the 9th Reconnaissance Wing, which operates the U-2 Dragon Lady — the iconic high-altitude (70,000+ ft) single-engine reconnaissance aircraft still flying after 60+ years. Beale also operates the RQ-4 Global Hawk unmanned system. U-2 pilots wear partial-pressure suits similar to astronauts, since the aircraft flies at the edge of space. Beale is north of Sacramento."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "Langley AFB (Joint Base Langley-Eustis) in Virginia is home to which Air Force aircraft?",
+    answers: ["F-22 Raptor", "F-35A Lightning II", "F-15E Strike Eagle", "A-10 Thunderbolt II"],
+    correct: 0,
+    explanation: "Joint Base Langley-Eustis (Hampton, Virginia) hosts the 1st Fighter Wing — one of the Air Force's most storied units — which flies F-22 Raptors. Langley was also the USAF's first major air base (opened 1917). As ACC headquarters, Langley hosts senior Air Force leadership for combat air operations. The base is adjacent to NASA Langley Research Center."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "The 'Home of the Bombers' — Dyess AFB in Abilene, Texas — operates which two aircraft?",
+    answers: [
+      "B-1B Lancer and C-130J Super Hercules",
+      "B-52 Stratofortress and KC-135",
+      "B-2 Spirit and F-16",
+      "B-1B Lancer and F-35A"
+    ],
+    correct: 0,
+    explanation: "Dyess AFB (Abilene, TX) is home to both the 7th Bomb Wing (B-1B Lancer supersonic bombers) and the 317th Airlift Wing (C-130J Super Hercules). The B-1B is a conventional (non-nuclear in its current configuration) supersonic swing-wing bomber. Dyess is one of the few installations with both bombers and tactical airlift — a unique combination for West Texas."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "Which base is the primary home for the Air Force's F-35A Lightning II operational training?",
+    answers: [
+      "Luke AFB, Arizona",
+      "Eglin AFB, Florida",
+      "Edwards AFB, California",
+      "Hill AFB, Utah"
+    ],
+    correct: 0,
+    explanation: "Luke AFB (Glendale/Litchfield Park, AZ, near Phoenix) is the Air Force's largest fighter pilot training base and the primary F-35A Formal Training Unit (FTU). The 56th Fighter Wing at Luke trains more fighter pilots than any other base in the world. Arizona's weather allows nearly year-round flying. Luke also trained F-16 pilots for decades before transitioning to F-35s."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "Edwards AFB in California is primarily known for:",
+    answers: [
+      "Aircraft testing and evaluation — the Air Force Test Center",
+      "Fighter pilot combat training",
+      "Space launch operations",
+      "Nuclear bomber operations"
+    ],
+    correct: 0,
+    explanation: "Edwards AFB (Kern County, CA, north of Los Angeles) is the USAF's premier flight test center — home of the Air Force Test Center and the Air Force Test Pilot School. Every major Air Force aircraft has been tested at Edwards, from the X-1 (breaking the sound barrier in 1947) to the F-22 and F-35. NASA also uses Edwards as a Space Shuttle landing alternate. Vast dry lake beds provide natural runways for emergencies."
+  },
+  {
+    category: "BASE LOCATIONS",
+    text: "Osan and Kunsan Air Bases are located in which country?",
+    answers: ["South Korea", "Japan", "Guam", "Philippines"],
+    correct: 0,
+    explanation: "Osan AB (7th Air Force HQ, F-16s) and Kunsan AB (F-16s) are both in South Korea. Osan is about 40 miles south of Seoul, and Kunsan is on the Yellow Sea coast. U.S. Air Forces Korea (USAFK) defends the peninsula. Personnel at these bases live under the constant reality of proximity to North Korea — Osan is within artillery range. A 'Korea tour' is typically an unaccompanied 1-year assignment."
+  },
+];
+
+
+
+// Shuffle array
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// State
+let quizQuestions = [];
+let currentIndex = 0;
+let score = 0;
+let correctCount = 0;
+let incorrectCount = 0;
+let streak = 0;
+let bestStreak = 0;
+let answered = false;
+const TOTAL = 20;
+
+function startQuiz() {
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('quiz-area').style.display = 'block';
+  quizQuestions = shuffle(questions).slice(0, TOTAL);
+  currentIndex = 0; score = 0; correctCount = 0; incorrectCount = 0;
+  streak = 0; bestStreak = 0;
+  updateStats();
+  showQuestion();
+}
+
+function resetQuiz() {
+  document.getElementById('results').classList.remove('visible');
+  startQuiz();
+}
+
+function updateStats() {
+  document.getElementById('score-val').textContent = score;
+  document.getElementById('correct-val').textContent = correctCount;
+  document.getElementById('incorrect-val').textContent = incorrectCount;
+  document.getElementById('streak-val').textContent = streak;
+}
+
+function showQuestion() {
+  answered = false;
+  const q = quizQuestions[currentIndex];
+
+  // Progress
+  const pct = (currentIndex / TOTAL) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = `QUESTION ${currentIndex + 1} OF ${TOTAL}`;
+
+  // Question
+  document.getElementById('q-category').textContent = q.category;
+  document.getElementById('q-counter').textContent = '';
+  document.getElementById('q-text').textContent = q.text;
+
+  // Shuffle answers (keep track of correct)
+  const letters = ['A', 'B', 'C', 'D'];
+  const answerIndices = shuffle([0, 1, 2, 3]);
+  const grid = document.getElementById('answers-grid');
+  grid.innerHTML = '';
+
+  answerIndices.forEach((origIdx, displayPos) => {
+    const btn = document.createElement('button');
+    btn.className = 'answer-btn';
+    btn.innerHTML = `<span class="answer-letter">${letters[displayPos]}</span>${q.answers[origIdx]}`;
+    btn.addEventListener('click', () => selectAnswer(btn, origIdx === q.correct, q, grid));
+    grid.appendChild(btn);
+  });
+
+  // Reset feedback/next
+  const fb = document.getElementById('feedback');
+  fb.classList.remove('visible');
+  document.getElementById('next-btn').classList.remove('visible');
+
+  // Animate card
+  const card = document.getElementById('question-card');
+  card.style.animation = 'none';
+  card.offsetHeight;
+  card.style.animation = 'cardIn 0.4s ease';
+}
+
+function selectAnswer(btn, isCorrect, q, grid) {
+  if (answered) return;
+  answered = true;
+
+  // Disable all buttons
+  grid.querySelectorAll('.answer-btn').forEach(b => b.classList.add('disabled'));
+
+  if (isCorrect) {
+    btn.classList.add('correct');
+    correctCount++;
+    streak++;
+    if (streak > bestStreak) bestStreak = streak;
+    score += 100 + (streak > 1 ? (streak - 1) * 25 : 0);
+  } else {
+    btn.classList.add('incorrect');
+    // Highlight correct
+    const allBtns = grid.querySelectorAll('.answer-btn');
+    allBtns.forEach(b => {
+      if (b.textContent.trim().slice(1).trim() === q.answers[q.correct].trim()) {
+        b.classList.add('correct');
+      }
+    });
+    incorrectCount++;
+    streak = 0;
+  }
+
+  updateStats();
+
+  // Show feedback
+  document.getElementById('feedback-text').textContent = q.explanation;
+  document.getElementById('feedback').classList.add('visible');
+  document.getElementById('next-btn').classList.add('visible');
+  document.getElementById('next-btn').textContent = currentIndex < TOTAL - 1 ? 'NEXT QUESTION ›' : 'VIEW RESULTS ›';
+}
+
+function nextQuestion() {
+  currentIndex++;
+  if (currentIndex >= TOTAL) {
+    showResults();
+  } else {
+    showQuestion();
+  }
+}
+
+function showResults() {
+  document.getElementById('quiz-area').style.display = 'none';
+  const pct = Math.round((correctCount / TOTAL) * 100);
+
+  let rankLabel, title, assessment;
+  if (pct >= 90) {
+    rankLabel = 'ASSESSMENT: SUPERIOR';
+    title = 'COMMAND READY';
+    assessment = 'Outstanding performance. You demonstrate expert knowledge of Air Force and Space Force rank structure, career fields, and customs. You\'re ready to engage confidently at any level.';
+  } else if (pct >= 75) {
+    rankLabel = 'ASSESSMENT: EXCELLENT';
+    title = 'MISSION QUALIFIED';
+    assessment = 'Strong performance across most topic areas. You have solid working knowledge. A few focused study sessions will sharpen any weak spots.';
+  } else if (pct >= 60) {
+    rankLabel = 'ASSESSMENT: SATISFACTORY';
+    title = 'NEEDS SEASONING';
+    assessment = 'Decent baseline, but gaps remain. Review rank insignia, AFSCs, and Space Force specifics. Regular interaction with military contacts will accelerate your learning.';
+  } else {
+    rankLabel = 'ASSESSMENT: UNSATISFACTORY';
+    title = 'BACK TO BASICS';
+    assessment = 'Significant gaps identified. Start with the rank structure from E-1 to O-10, then focus on common AFSCs and organizational hierarchy. Retake this assessment to track improvement.';
+  }
+
+  document.getElementById('results-rank').textContent = rankLabel;
+  document.getElementById('results-title').textContent = title;
+  document.getElementById('results-score').textContent = score.toLocaleString();
+  document.getElementById('results-pct').textContent = `${pct}% ACCURACY · ${correctCount}/${TOTAL} CORRECT`;
+  document.getElementById('r-correct').textContent = correctCount;
+  document.getElementById('r-incorrect').textContent = incorrectCount;
+  document.getElementById('r-streak').textContent = bestStreak;
+  document.getElementById('results-assessment').textContent = assessment;
+
+  document.getElementById('results').classList.add('visible');
+}
+
+// Generate stars
+const starsContainer = document.getElementById('stars');
+for (let i = 0; i < 120; i++) {
+  const star = document.createElement('div');
+  star.classList.add('star');
+  const size = Math.random() * 2.5 + 0.5;
+  star.style.cssText = `
+    width: ${size}px; height: ${size}px;
+    left: ${Math.random() * 100}%;
+    top: ${Math.random() * 100}%;
+    --duration: ${2 + Math.random() * 4}s;
+    --delay: ${Math.random() * 4}s;
+  `;
+  starsContainer.appendChild(star);
+}
+</script>
+</body>
+</html>
