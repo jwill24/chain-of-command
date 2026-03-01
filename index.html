@@ -344,6 +344,32 @@
       opacity: 0.7;
     }
 
+    /* Rank insignia display */
+    .insignia-display {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 24px;
+      padding: 24px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(200, 168, 75, 0.2);
+    }
+
+    .insignia-display svg {
+      filter: drop-shadow(0 0 8px rgba(200, 168, 75, 0.3));
+    }
+
+    .insignia-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 3px;
+      color: var(--sf-silver);
+      text-align: center;
+      margin-top: 10px;
+      text-transform: uppercase;
+    }
+
     /* Feedback */
     .feedback {
       margin-top: 20px;
@@ -629,7 +655,7 @@
     </p>
     <div class="topic-grid">
       <div class="topic-item"><span class="icon">🎖️</span>Rank Structure</div>
-      <div class="topic-item"><span class="icon">🔷</span>Insignia & Patches</div>
+      <div class="topic-item"><span class="icon">🔍</span>Rank Identification</div>
       <div class="topic-item"><span class="icon">🚀</span>Career Fields (AFSCs)</div>
       <div class="topic-item"><span class="icon">🏛️</span>Org Structure</div>
       <div class="topic-item"><span class="icon">🛰️</span>SF Field Commands</div>
@@ -1783,6 +1809,18 @@ function showQuestion() {
   document.getElementById('q-counter').textContent = '';
   document.getElementById('q-text').textContent = q.text;
 
+  // Insignia visual (if this is a visual rank question)
+  const existingInsignia = document.getElementById('insignia-display');
+  if (existingInsignia) existingInsignia.remove();
+  if (q.insignia) {
+    const display = document.createElement('div');
+    display.id = 'insignia-display';
+    display.className = 'insignia-display';
+    display.innerHTML = q.insignia;
+    const qText = document.getElementById('q-text');
+    qText.parentNode.insertBefore(display, qText.nextSibling);
+  }
+
   // Shuffle answers (keep track of correct)
   const letters = ['A', 'B', 'C', 'D'];
   const answerIndices = shuffle([0, 1, 2, 3]);
@@ -1887,6 +1925,523 @@ function showResults() {
 
   document.getElementById('results').classList.add('visible');
 }
+
+
+// ===== INSIGNIA SVG LIBRARY =====
+// Colors
+const GOLD = '#C8A84B';
+const SILVER = '#C0C8D0';
+const DARK = '#0a0a18';
+const BLUE = '#003087';
+const WHITE = '#e8edf5';
+
+// Helper: USAF enlisted chevron stripe (pointing up V shape)
+function chevronStripe(y, w=60) {
+  const h = 10, tip = w*0.5;
+  return `<polyline points="${(80-w)/2},${y} ${40},${y-h} ${(80+w)/2},${y}" fill="none" stroke="${GOLD}" stroke-width="6" stroke-linejoin="round"/>`;
+}
+
+// Helper: rocker arc (below chevrons)
+function rocker(cy, rx=28, ry=8) {
+  return `<path d="M ${40-rx} ${cy} Q 40 ${cy+ry*2} ${40+rx} ${cy}" fill="none" stroke="${GOLD}" stroke-width="6"/>`;
+}
+
+// Helper: 5-pointed star
+function star5(cx, cy, r=8) {
+  const pts = [];
+  for (let i=0; i<5; i++) {
+    const outerA = (i*72 - 90) * Math.PI/180;
+    const innerA = ((i*72 + 36) - 90) * Math.PI/180;
+    pts.push(`${cx + r*Math.cos(outerA)},${cy + r*Math.sin(outerA)}`);
+    pts.push(`${cx + r*0.4*Math.cos(innerA)},${cy + r*0.4*Math.sin(innerA)}`);
+  }
+  return `<polygon points="${pts.join(' ')}" fill="${GOLD}" stroke="none"/>`;
+}
+
+// Helper: diamond shape
+function diamond(cx, cy, w=10, h=14) {
+  return `<polygon points="${cx},${cy-h/2} ${cx+w/2},${cy} ${cx},${cy+h/2} ${cx-w/2},${cy}" fill="${GOLD}"/>`;
+}
+
+// Helper: oak leaf
+function oakLeaf(cx, cy, color=GOLD, scale=1) {
+  // Simplified oak leaf as SVG path
+  const s = scale;
+  return `<g transform="translate(${cx},${cy}) scale(${s})">
+    <path d="M0,-14 C4,-10 10,-8 8,-2 C12,0 10,6 6,6 C8,10 4,12 0,14 C-4,12 -8,10 -6,6 C-10,6 -12,0 -8,-2 C-10,-8 -4,-10 0,-14Z" fill="${color}"/>
+    <line x1="0" y1="-10" x2="0" y2="12" stroke="${DARK}" stroke-width="1.5"/>
+  </g>`;
+}
+
+// Helper: eagle (simplified silhouette)  
+function eagle(cx, cy) {
+  return `<g transform="translate(${cx},${cy})">
+    <ellipse cx="0" cy="0" rx="9" ry="6" fill="${GOLD}"/>
+    <path d="M-22,-4 C-14,-8 -6,-6 0,-2 C6,-6 14,-8 22,-4 C16,2 8,4 0,2 C-8,4 -16,2 -22,-4Z" fill="${GOLD}"/>
+    <ellipse cx="0" cy="-3" rx="5" ry="6" fill="${GOLD}"/>
+    <circle cx="3" cy="-5" r="1.5" fill="${DARK}"/>
+    <path d="M5,-4 L10,-5 L7,-2Z" fill="${GOLD}"/>
+  </g>`;
+}
+
+// Wrap in standard SVG frame
+function svgWrap(inner, label='', w=160, h=120) {
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
+    <rect width="${w}" height="${h}" rx="4" fill="${DARK}" stroke="${GOLD}" stroke-width="1.5" stroke-opacity="0.4"/>
+    ${inner}
+  </svg>${label ? `<div class="insignia-label">${label}</div>` : ''}`;
+}
+
+// ---- USAF ENLISTED INSIGNIA ----
+
+// E-1 Airman Basic — no insignia (blank)
+const insig_AB = svgWrap(`<text x="80" y="65" text-anchor="middle" fill="#4a5568" font-family="Share Tech Mono" font-size="11">NO INSIGNIA</text>`, 'USAF ENLISTED');
+
+// E-2 Airman — 1 chevron
+const insig_Amn = svgWrap(chevronStripe(75, 50), 'USAF ENLISTED');
+
+// E-3 Airman First Class — 1 chevron + 1 rocker below  
+const insig_A1C = svgWrap(chevronStripe(68, 50) + rocker(82), 'USAF ENLISTED');
+
+// E-4 Senior Airman — 3 chevrons
+const insig_SrA = svgWrap([
+  chevronStripe(55, 52),
+  chevronStripe(67, 52),
+  chevronStripe(79, 52)
+].join('') + star5(80, 44, 7), 'USAF ENLISTED');
+
+// E-5 Staff Sergeant — 3 chevrons + 1 rocker
+const insig_SSgt = svgWrap([
+  chevronStripe(50, 52),
+  chevronStripe(62, 52),
+  chevronStripe(74, 52)
+].join('') + rocker(88), 'USAF ENLISTED');
+
+// E-6 Technical Sergeant — 3 chevrons + 2 rockers
+const insig_TSgt = svgWrap([
+  chevronStripe(45, 52),
+  chevronStripe(57, 52),
+  chevronStripe(69, 52)
+].join('') + rocker(82) + rocker(94), 'USAF ENLISTED');
+
+// E-7 Master Sergeant — 3 chevrons + 3 rockers
+const insig_MSgt = svgWrap([
+  chevronStripe(40, 52),
+  chevronStripe(52, 52),
+  chevronStripe(64, 52)
+].join('') + rocker(77) + rocker(89) + rocker(101), 'USAF ENLISTED', 160, 130);
+
+// E-8 Senior Master Sergeant — 3 chevrons + 3 rockers + star
+const insig_SMSgt = svgWrap([
+  star5(80, 22, 8),
+  chevronStripe(42, 52),
+  chevronStripe(54, 52),
+  chevronStripe(66, 52)
+].join('') + rocker(79) + rocker(91) + rocker(103), 'USAF ENLISTED', 160, 130);
+
+// E-9 Chief Master Sergeant — 3 chevrons + 3 rockers + star in circle
+const insig_CMSgt = svgWrap([
+  `<circle cx="80" cy="22" r="11" fill="none" stroke="${GOLD}" stroke-width="2"/>`,
+  star5(80, 22, 7),
+  chevronStripe(44, 52),
+  chevronStripe(56, 52),
+  chevronStripe(68, 52)
+].join('') + rocker(81) + rocker(93) + rocker(105), 'USAF ENLISTED', 160, 132);
+
+// ---- USAF OFFICER INSIGNIA ----
+
+// O-1 Second Lieutenant — single gold bar
+const insig_2Lt = svgWrap(`<rect x="44" y="46" width="72" height="28" rx="3" fill="${GOLD}"/>`, 'USAF OFFICER');
+
+// O-2 First Lieutenant — single silver bar
+const insig_1Lt = svgWrap(`<rect x="44" y="46" width="72" height="28" rx="3" fill="${SILVER}"/>`, 'USAF OFFICER');
+
+// O-3 Captain — two silver bars
+const insig_Capt = svgWrap(`
+  <rect x="28" y="46" width="44" height="28" rx="3" fill="${SILVER}"/>
+  <rect x="88" y="46" width="44" height="28" rx="3" fill="${SILVER}"/>
+`, 'USAF OFFICER');
+
+// O-4 Major — gold oak leaf
+const insig_Maj = svgWrap(oakLeaf(80, 60, GOLD, 1.7), 'USAF OFFICER');
+
+// O-5 Lieutenant Colonel — silver oak leaf
+const insig_LtCol = svgWrap(oakLeaf(80, 60, SILVER, 1.7), 'USAF OFFICER');
+
+// O-6 Colonel — silver eagle
+const insig_Col = svgWrap(eagle(80, 60), 'USAF OFFICER');
+
+// O-7 Brigadier General — 1 star
+const insig_BrigGen = svgWrap(star5(80, 60, 18), 'USAF OFFICER');
+
+// O-8 Major General — 2 stars
+const insig_MajGen = svgWrap(star5(55, 60, 15) + star5(105, 60, 15), 'USAF OFFICER');
+
+// O-9 Lieutenant General — 3 stars
+const insig_LtGen = svgWrap(star5(35, 60, 13) + star5(80, 60, 13) + star5(125, 60, 13), 'USAF OFFICER');
+
+// O-10 General — 4 stars
+const insig_Gen = svgWrap(star5(25, 60, 11) + star5(62, 60, 11) + star5(98, 60, 11) + star5(135, 60, 11), 'USAF OFFICER', 175);
+
+// ---- USSF ENLISTED INSIGNIA ----
+// USSF uses same chevron structure but different rank names
+// Spc1 = E-1, Spc2 = E-2, Spc3 = E-3, Spc4 = E-4 (no insignia for Spc1)
+
+const insig_Spc1 = svgWrap(`<text x="80" y="65" text-anchor="middle" fill="#4a5568" font-family="Share Tech Mono" font-size="11">NO INSIGNIA</text>`, 'USSF ENLISTED');
+
+const insig_Spc2 = svgWrap(chevronStripe(75, 50), 'USSF ENLISTED');
+
+const insig_Spc3 = svgWrap(chevronStripe(65, 50) + chevronStripe(79, 50), 'USSF ENLISTED');
+
+const insig_Spc4 = svgWrap([
+  chevronStripe(55, 52),
+  chevronStripe(67, 52),
+  chevronStripe(79, 52)
+].join('') + star5(80, 44, 7), 'USSF ENLISTED');
+
+// USSF Sergeant E-5 (same as USAF SSgt visually)
+const insig_SgtUSSF = svgWrap([
+  chevronStripe(50, 52),
+  chevronStripe(62, 52),
+  chevronStripe(74, 52)
+].join('') + rocker(88), 'USSF ENLISTED');
+
+
+// USSF additional enlisted insignia
+const insig_Spc3 = svgWrap([
+  chevronStripe(65, 50),
+  chevronStripe(79, 50)
+].join(''), 'USSF ENLISTED');
+
+const insig_TSgtUSSF = svgWrap([
+  chevronStripe(45, 52),
+  chevronStripe(57, 52),
+  chevronStripe(69, 52)
+].join('') + rocker(82) + rocker(94), 'USSF ENLISTED');
+
+const insig_MSgtUSSF = svgWrap([
+  chevronStripe(40, 52),
+  chevronStripe(52, 52),
+  chevronStripe(64, 52)
+].join('') + rocker(77) + rocker(89) + rocker(101), 'USSF ENLISTED', 160, 130);
+
+const insig_SMSgtUSSF = svgWrap([
+  star5(80, 22, 8),
+  chevronStripe(42, 52),
+  chevronStripe(54, 52),
+  chevronStripe(66, 52)
+].join('') + rocker(79) + rocker(91) + rocker(103), 'USSF ENLISTED', 160, 130);
+
+const insig_CMSgtUSSF = svgWrap([
+  `<circle cx="80" cy="22" r="11" fill="none" stroke="${GOLD}" stroke-width="2"/>`,
+  star5(80, 22, 7),
+  chevronStripe(44, 52),
+  chevronStripe(56, 52),
+  chevronStripe(68, 52)
+].join('') + rocker(81) + rocker(93) + rocker(105), 'USSF ENLISTED', 160, 132);
+
+// ===== VISUAL RANK QUESTIONS =====
+const visualQuestions = [
+  // --- USAF ENLISTED ---
+  {
+    category: "RANK IDENTIFICATION",
+    text: "What rank is shown?",
+    insignia: insig_AB,
+    answers: ["Airman Basic (E-1)", "Airman (E-2)", "Airman First Class (E-3)", "Senior Airman (E-4)"],
+    correct: 0,
+    explanation: "Airman Basic (AB, E-1) wears NO insignia — completely bare sleeves. This is the entry-level rank upon entering the Air Force. After completing Basic Military Training and meeting time-in-service requirements, they promote to Airman (E-2)."
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "What rank does this insignia represent?",
+    insignia: insig_Amn,
+    answers: ["Airman (E-2)", "Airman Basic (E-1)", "Airman First Class (E-3)", "Senior Airman (E-4)"],
+    correct: 0,
+    explanation: "Airman (Amn, E-2) wears a single chevron. This is the first rank with visible insignia, typically earned 6 months after joining. Not to be confused with Airman First Class (one chevron + rocker below) or Senior Airman (three chevrons + star)."
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "This insignia belongs to which USAF rank?",
+    insignia: insig_A1C,
+    answers: ["Airman First Class (E-3)", "Airman (E-2)", "Senior Airman (E-4)", "Staff Sergeant (E-5)"],
+    correct: 0,
+    explanation: "Airman First Class (A1C, E-3) wears one chevron with a rocker arc below it. The rocker distinguishes A1C from Airman (E-2, who has just the chevron). A1C is typically reached after about 28 months of service. Address them as 'Airman [Last Name].'"
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "Identify this rank insignia:",
+    insignia: insig_SrA,
+    answers: ["Senior Airman (E-4)", "Staff Sergeant (E-5)", "Airman First Class (E-3)", "Technical Sergeant (E-6)"],
+    correct: 0,
+    explanation: "Senior Airman (SrA, E-4) wears three chevrons pointing up with a star above them. This is the last enlisted rank before the NCO tier — Staff Sergeant (E-5) is the first NCO rank. Senior Airmen are addressed as 'Airman [Last Name]' or 'Senior Airman [Last Name].'"
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "What rank is shown?",
+    insignia: insig_SSgt,
+    answers: ["Staff Sergeant (E-5)", "Technical Sergeant (E-6)", "Senior Airman (E-4)", "Master Sergeant (E-7)"],
+    correct: 0,
+    explanation: "Staff Sergeant (SSgt, E-5) wears three chevrons with one rocker below. This is the first NCO rank — a significant milestone in an enlisted career. SSgts are expected to lead, mentor, and supervise junior Airmen. Address them as 'Sergeant [Last Name].'"
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "Identify this USAF enlisted insignia:",
+    insignia: insig_TSgt,
+    answers: ["Technical Sergeant (E-6)", "Staff Sergeant (E-5)", "Master Sergeant (E-7)", "Senior Master Sergeant (E-8)"],
+    correct: 0,
+    explanation: "Technical Sergeant (TSgt, E-6) wears three chevrons with two rockers below. TSgts are experienced NCOs often serving as section supervisors or lead technicians. Address them as 'Sergeant [Last Name].' The jump from SSgt to TSgt is competitive — only a percentage of eligible SSgts promote each cycle."
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "What rank does this insignia represent?",
+    insignia: insig_MSgt,
+    answers: ["Master Sergeant (E-7)", "Technical Sergeant (E-6)", "Senior Master Sergeant (E-8)", "Chief Master Sergeant (E-9)"],
+    correct: 0,
+    explanation: "Master Sergeant (MSgt, E-7) wears three chevrons with three rockers. MSgts are senior NCOs — the first of the 'top three' tiers of enlisted leadership. They typically serve as flight chiefs or senior technicians. Address them as 'Sergeant [Last Name]' — not 'Master Sergeant' in casual address."
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "Identify this rank insignia:",
+    insignia: insig_SMSgt,
+    answers: ["Senior Master Sergeant (E-8)", "Master Sergeant (E-7)", "Chief Master Sergeant (E-9)", "Command Chief Master Sergeant"],
+    correct: 0,
+    explanation: "Senior Master Sergeant (SMSgt, E-8) wears three chevrons, three rockers, and a star above the chevrons. SMSgts are senior NCO leaders — fewer than 2% of enlisted Airmen reach this rank. Address them as 'Senior' (short for Senior Master Sergeant) or 'Sergeant [Last Name].' Less than 1% reach CMSgt above this."
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "What rank is shown?",
+    insignia: insig_CMSgt,
+    answers: ["Chief Master Sergeant (E-9)", "Senior Master Sergeant (E-8)", "Command Chief Master Sergeant", "Chief Master Sergeant of the Air Force"],
+    correct: 0,
+    explanation: "Chief Master Sergeant (CMSgt, E-9) wears three chevrons, three rockers, and a star inside a circle. This is the highest enlisted rank — only about 1% of enlisted reach CMSgt. Always address them as 'Chief' — never 'Sergeant' or 'Master Chief' (that's Navy). The CMSAF wears the same device with an additional wreath."
+  },
+
+  // --- USAF OFFICERS ---
+  {
+    category: "RANK IDENTIFICATION",
+    text: "This officer insignia represents which rank?",
+    insignia: insig_2Lt,
+    answers: ["Second Lieutenant (O-1)", "First Lieutenant (O-2)", "Captain (O-3)", "Major (O-4)"],
+    correct: 0,
+    explanation: "Second Lieutenant (2d Lt, O-1) wears a single GOLD bar. This is counterintuitive to many — the junior lieutenant gets gold, the senior one gets silver. 2d Lts are new officers, typically fresh from USAFA, ROTC, or OTS. Address them as 'Lieutenant [Last Name].' They outrank all enlisted, but are still learning."
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "What rank is shown?",
+    insignia: insig_1Lt,
+    answers: ["First Lieutenant (O-2)", "Second Lieutenant (O-1)", "Captain (O-3)", "Major (O-4)"],
+    correct: 0,
+    explanation: "First Lieutenant (1st Lt, O-2) wears a single SILVER bar. Remember: junior (2d Lt) = gold bar, senior (1st Lt) = silver bar. It's counterintuitive but important to get right. 1st Lts typically have 18–24 months of service. Address them as 'Lieutenant [Last Name].'"
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "Identify this officer rank insignia:",
+    insignia: insig_Capt,
+    answers: ["Captain (O-3)", "First Lieutenant (O-2)", "Major (O-4)", "Second Lieutenant (O-1)"],
+    correct: 0,
+    explanation: "Captain (Capt, O-3) wears TWO silver bars — often called 'railroad tracks.' Captains are experienced junior officers, typically 4–6 years in service. They commonly serve as flight commanders, aircraft commanders, or section leaders. Address them as 'Captain [Last Name].' This is often the last rank before the competitive promotion to Major."
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "What rank is shown?",
+    insignia: insig_Maj,
+    answers: ["Major (O-4)", "Lieutenant Colonel (O-5)", "Colonel (O-6)", "Warrant Officer"],
+    correct: 0,
+    explanation: "Major (Maj, O-4) wears a GOLD oak leaf. This is a field grade officer rank — the beginning of the senior officer career. The promotion from Captain to Major is highly competitive. Address them as 'Major [Last Name].' Don't confuse with Lieutenant Colonel's silver oak leaf."
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "What rank is shown?",
+    insignia: insig_LtCol,
+    answers: ["Lieutenant Colonel (O-5)", "Major (O-4)", "Colonel (O-6)", "Brigadier General (O-7)"],
+    correct: 0,
+    explanation: "Lieutenant Colonel (Lt Col, O-5) wears a SILVER oak leaf. Major (O-4) wears a GOLD oak leaf — same shape, different metal. Address Lt Cols as 'Colonel' — NOT 'Lieutenant Colonel' or 'Lieutenant.' This is one of the most common address mistakes civilians make. Lt Cols often command squadrons."
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "Identify this officer rank insignia:",
+    insignia: insig_Col,
+    answers: ["Colonel (O-6)", "Lieutenant Colonel (O-5)", "Brigadier General (O-7)", "Major General (O-8)"],
+    correct: 0,
+    explanation: "Colonel (Col, O-6) wears a silver eagle — nicknamed 'full bird Colonel' to distinguish from Lieutenant Colonel. Colonels typically command Wings (1,000–5,000+ personnel). Also address them as 'Colonel [Last Name].' Reaching Colonel is a major career milestone — fewer than 10% of officers make it this far."
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "What rank is shown?",
+    insignia: insig_BrigGen,
+    answers: ["Brigadier General (O-7)", "Major General (O-8)", "Lieutenant General (O-9)", "Colonel (O-6)"],
+    correct: 0,
+    explanation: "Brigadier General (Brig Gen, O-7) wears ONE star. General officer ranks: 1 star = Brigadier General, 2 stars = Major General, 3 stars = Lieutenant General, 4 stars = General. Address all generals as 'General [Last Name]' regardless of how many stars — never 'Brigadier General Smith,' just 'General Smith.'"
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "Identify this general officer rank:",
+    insignia: insig_MajGen,
+    answers: ["Major General (O-8)", "Brigadier General (O-7)", "Lieutenant General (O-9)", "General (O-10)"],
+    correct: 0,
+    explanation: "Major General (Maj Gen, O-8) wears TWO stars. Despite the name having 'Major' in it, a Major General significantly outranks a Brigadier General (1 star). Address as 'General [Last Name].' Major Generals typically command numbered air forces, Space Force field commands (STARCOM is led by a Maj Gen), or major installations."
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "What rank is shown?",
+    insignia: insig_LtGen,
+    answers: ["Lieutenant General (O-9)", "Major General (O-8)", "General (O-10)", "Brigadier General (O-7)"],
+    correct: 0,
+    explanation: "Lieutenant General (Lt Gen, O-9) wears THREE stars. Despite 'Lieutenant' in the title, this is a very senior rank. Lt Generals command major commands like Space Operations Command (CFC) or Air Forces commands. The Space Force's CFC and SSC are led by Lt Generals. Address as 'General [Last Name].'"
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "Identify this four-star rank insignia:",
+    insignia: insig_Gen,
+    answers: ["General (O-10)", "Lieutenant General (O-9)", "General of the Air Force (O-11)", "Major General (O-8)"],
+    correct: 0,
+    explanation: "General (Gen, O-10) wears FOUR stars — the highest regular rank in the Air Force and Space Force. The Chief of Staff of the Air Force (CSAF) and Chief of Space Operations (CSO) are both four-star Generals. The five-star 'General of the Air Force' rank only exists in wartime and has not been active since WWII."
+  },
+
+  // --- USSF ENLISTED ---
+  {
+    category: "RANK IDENTIFICATION",
+    text: "This is a Space Force enlisted insignia. What rank is shown?",
+    insignia: insig_Spc1,
+    answers: ["Specialist 1 (E-1)", "Specialist 2 (E-2)", "Specialist 3 (E-3)", "Specialist 4 (E-4)"],
+    correct: 0,
+    explanation: "Space Force Specialist 1 (Spc1, E-1) wears NO insignia — bare sleeves, same as USAF Airman Basic. The Space Force uses unique enlisted rank names: E-1 through E-4 are all called 'Specialist' with a number (Spc1–Spc4), replacing the Airman ranks used by the Air Force."
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "A Space Force Guardian wearing this insignia holds which rank?",
+    insignia: insig_Spc2,
+    answers: ["Specialist 2 (E-2)", "Specialist 1 (E-1)", "Specialist 3 (E-3)", "Airman (E-2)"],
+    correct: 0,
+    explanation: "Space Force Specialist 2 (Spc2, E-2) wears one chevron — visually identical to USAF Airman (E-2), but the rank title is different. All Space Force enlisted members are called 'Guardians.' When addressing a Spc2, use 'Specialist [Last Name]' — NOT 'Airman,' which is an Air Force title."
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "This Space Force insignia represents:",
+    insignia: insig_Spc4,
+    answers: ["Specialist 4 (E-4)", "Specialist 3 (E-3)", "Sergeant (E-5)", "Specialist 2 (E-2)"],
+    correct: 0,
+    explanation: "Space Force Specialist 4 (Spc4, E-4) wears three chevrons and a star — visually the same as USAF Senior Airman (E-4), but again with a different rank title. Spc4 is the last Specialist rank before NCO status begins at Sergeant (E-5). Address as 'Specialist [Last Name].'"
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "What Space Force rank is shown?",
+    insignia: insig_SgtUSSF,
+    answers: ["Sergeant (E-5)", "Staff Sergeant (E-5)", "Specialist 4 (E-4)", "Technical Sergeant (E-6)"],
+    correct: 0,
+    explanation: "Space Force E-5 is called Sergeant (Sgt) — matching the Air Force's Staff Sergeant visual (three chevrons + one rocker) but using the simpler title 'Sergeant.' Unlike the Air Force which uses 'Staff Sergeant' at E-5, the Space Force drops 'Staff.' Address as 'Sergeant [Last Name].' This is a key difference to know when working with Guardians."
+  },
+  // USSF Enlisted additional
+  {
+    category: "RANK IDENTIFICATION",
+    text: "What Space Force rank is shown?",
+    insignia: insig_Spc3,
+    answers: ["Specialist 3 (E-3)", "Specialist 2 (E-2)", "Specialist 4 (E-4)", "Airman First Class (E-3)"],
+    correct: 0,
+    explanation: "Space Force Specialist 3 (Spc3, E-3) wears two chevrons. The Air Force skips two chevrons entirely — it goes from 1 chevron (E-2 Airman) to 3 chevrons (E-4 SrA). The Space Force fills that gap with Spc3 wearing two chevrons, making its enlisted progression more evenly stepped. Address as 'Specialist [Last Name].'"
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "What Space Force rank is shown?",
+    insignia: insig_TSgtUSSF,
+    answers: ["Technical Sergeant (E-6)", "Sergeant (E-5)", "Master Sergeant (E-7)", "Senior Airman (E-4)"],
+    correct: 0,
+    explanation: "Space Force Technical Sergeant (TSgt, E-6) — three chevrons with two rockers, visually identical to USAF TSgt. From E-5 upward, USSF NCO titles and insignia mirror the Air Force exactly: Sergeant, Technical Sergeant, Master Sergeant, Senior Master Sergeant, Chief Master Sergeant. Address as 'Sergeant [Last Name].'"
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "What Space Force rank is shown?",
+    insignia: insig_MSgtUSSF,
+    answers: ["Master Sergeant (E-7)", "Technical Sergeant (E-6)", "Senior Master Sergeant (E-8)", "Sergeant (E-5)"],
+    correct: 0,
+    explanation: "Space Force Master Sergeant (MSgt, E-7) — three chevrons and three rockers. First of the USSF senior NCO 'top three' grades. Visually and by title identical to USAF MSgt. Address as 'Sergeant [Last Name].' MSgts take on significant leadership roles within Deltas and Squadrons."
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "What Space Force rank is shown?",
+    insignia: insig_SMSgtUSSF,
+    answers: ["Senior Master Sergeant (E-8)", "Master Sergeant (E-7)", "Chief Master Sergeant (E-9)", "Technical Sergeant (E-6)"],
+    correct: 0,
+    explanation: "Space Force Senior Master Sergeant (SMSgt, E-8) — three chevrons, three rockers, and a star above. Visually and by title identical to USAF SMSgt. Address as 'Senior' or 'Sergeant [Last Name].' Fewer than 2% of USSF enlisted reach this grade."
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "What Space Force rank is shown?",
+    insignia: insig_CMSgtUSSF,
+    answers: ["Chief Master Sergeant (E-9)", "Senior Master Sergeant (E-8)", "Chief Master Sergeant of the Space Force", "Master Sergeant (E-7)"],
+    correct: 0,
+    explanation: "Space Force Chief Master Sergeant (CMSgt, E-9) — three chevrons, three rockers, star in a circle. Identical visually to USAF CMSgt. Always address as 'Chief.' The Chief Master Sergeant of the Space Force (CMSSF) wears an additional wreath and is the single most senior enlisted Guardian."
+  },
+  // USSF Officers
+  {
+    category: "RANK IDENTIFICATION",
+    text: "What Space Force officer rank is shown?",
+    insignia: insig_2Lt,
+    answers: ["Second Lieutenant (O-1)", "First Lieutenant (O-2)", "Captain (O-3)", "Specialist 4 (E-4)"],
+    correct: 0,
+    explanation: "Space Force Second Lieutenant (2d Lt, O-1) — single gold bar, identical to USAF. USSF officer ranks and insignia are exactly the same as the Air Force from O-1 through O-10. The key difference from enlisted: USSF officer titles did NOT change when the Space Force was created."
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "What Space Force officer rank is shown?",
+    insignia: insig_1Lt,
+    answers: ["First Lieutenant (O-2)", "Second Lieutenant (O-1)", "Captain (O-3)", "Major (O-4)"],
+    correct: 0,
+    explanation: "Space Force First Lieutenant (1st Lt, O-2) — single silver bar. Same as USAF. Remember: junior officer (2d Lt) gets gold, senior junior officer (1st Lt) gets silver — counterintuitive but consistent across both services."
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "What Space Force officer rank is shown?",
+    insignia: insig_Capt,
+    answers: ["Captain (O-3)", "First Lieutenant (O-2)", "Major (O-4)", "Second Lieutenant (O-1)"],
+    correct: 0,
+    explanation: "Space Force Captain (Capt, O-3) — two silver bars. Same as USAF. Space Force Captains often serve in operational roles as space operators (13S), intelligence officers (14N), or cyber officers. Address as 'Captain [Last Name].'"
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "What Space Force officer rank is shown?",
+    insignia: insig_Maj,
+    answers: ["Major (O-4)", "Lieutenant Colonel (O-5)", "Captain (O-3)", "Colonel (O-6)"],
+    correct: 0,
+    explanation: "Space Force Major (Maj, O-4) — gold oak leaf. Same as USAF. Majors in the Space Force often serve as flight commanders within squadrons or on Delta and field command staffs. Address as 'Major [Last Name].'"
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "What Space Force officer rank is shown?",
+    insignia: insig_LtCol,
+    answers: ["Lieutenant Colonel (O-5)", "Major (O-4)", "Colonel (O-6)", "Lieutenant General (O-9)"],
+    correct: 0,
+    explanation: "Space Force Lieutenant Colonel (Lt Col, O-5) — silver oak leaf. Lt Cols command Squadrons within Space Force Deltas. Address as 'Colonel' in conversation — never 'Lieutenant Colonel.' The silver vs. gold oak leaf distinction (Lt Col vs. Major) is one of the most practically important insignia differences to know."
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "What Space Force officer rank is shown?",
+    insignia: insig_Col,
+    answers: ["Colonel (O-6)", "Lieutenant Colonel (O-5)", "Brigadier General (O-7)", "Major (O-4)"],
+    correct: 0,
+    explanation: "Space Force Colonel (Col, O-6) — silver eagle. Colonels command Space Force Deltas — the primary operational units of ~400 personnel. When you're dealing with a Delta commander, you're dealing with a Colonel. Address as 'Colonel [Last Name].'"
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "What Space Force officer rank is shown?",
+    insignia: insig_BrigGen,
+    answers: ["Brigadier General (O-7)", "Major General (O-8)", "Lieutenant General (O-9)", "Colonel (O-6)"],
+    correct: 0,
+    explanation: "Space Force Brigadier General (Brig Gen, O-7) — one star. Same as USAF. Address as 'General [Last Name]' — never 'Brigadier General Smith.' Brigadier Generals in the Space Force often serve as deputy commanders of field commands or senior staff roles at HQ USSF."
+  },
+  {
+    category: "RANK IDENTIFICATION",
+    text: "What Space Force officer rank is shown?",
+    insignia: insig_LtGen,
+    answers: ["Lieutenant General (O-9)", "Major General (O-8)", "General (O-10)", "Brigadier General (O-7)"],
+    correct: 0,
+    explanation: "Space Force Lieutenant General (Lt Gen, O-9) — three stars. The commanders of Combat Forces Command (CFC) and Space Systems Command (SSC) are both Lt Generals — the most senior operational Space Force leaders below the Chief of Space Operations (4-star General). Address as 'General [Last Name].'"
+  },
+
+];
+
+// Add visual questions to the main pool
+questions.push(...visualQuestions);
 
 // Generate stars
 const starsContainer = document.getElementById('stars');
