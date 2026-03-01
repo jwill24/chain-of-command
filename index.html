@@ -2750,26 +2750,28 @@ async function showLeaderboard() {
 async function saveScore() {
   if (!lastScore) return;
   const nameInput = document.getElementById('lb-name-input');
-  const name = nameInput.value.trim().toUpperCase().replace(/[^A-Z0-9 _\-]/g, '').slice(0, 20);
+  const name = nameInput.value.trim().toUpperCase().replace(/[^A-Z0-9 _-]/g, '').slice(0, 20);
   if (!name) {
     document.getElementById('lb-status').textContent = 'ENTER A CALLSIGN TO SUBMIT';
     return;
   }
 
-  const entry = {
-    name,
-    score: lastScore.score,
-    pct: lastScore.pct,
-    correct: lastScore.correct,
-    streak: lastScore.streak,
-    date: new Date().toISOString().slice(0, 10)
-  };
-
   document.getElementById('lb-status').textContent = 'TRANSMITTING...';
 
   try {
-    const key = `entry:${Date.now()}:${Math.random().toString(36).slice(2,6)}`;
-    await window.storage.set(key, JSON.stringify(entry), true);
+    const res = await fetch('/api/leaderboard/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        display_name: name,
+        score: lastScore.score,
+        pct: lastScore.pct,
+        correct: lastScore.correct,
+        streak: lastScore.streak,
+        date: new Date().toISOString().slice(0, 10)
+      })
+    });
+    if (!res.ok) throw new Error('Server error');
     document.getElementById('lb-status').textContent = `SCORE SAVED — ${name}`;
     document.getElementById('lb-name-form').style.display = 'none';
     lastScore = null;
@@ -2784,32 +2786,22 @@ async function renderLeaderboard(highlightName = null) {
   tbody.innerHTML = '<tr><td colspan="6" class="lb-empty">LOADING...</td></tr>';
 
   try {
-    const result = await window.storage.list('entry:', true);
-    if (!result || !result.keys || result.keys.length === 0) {
+    const res = await fetch('/api/leaderboard');
+    if (!res.ok) throw new Error('Server error');
+    const entries = await res.json();
+
+    if (!entries.length) {
       tbody.innerHTML = '<tr><td colspan="6" class="lb-empty">NO ENTRIES YET — BE THE FIRST</td></tr>';
       return;
     }
 
-    // Fetch all entries
-    const entries = [];
-    for (const key of result.keys) {
-      try {
-        const r = await window.storage.get(key, true);
-        if (r && r.value) entries.push(JSON.parse(r.value));
-      } catch {}
-    }
-
-    // Sort by score desc, then pct desc
-    entries.sort((a, b) => b.score - a.score || b.pct - a.pct);
-    const top = entries.slice(0, 15);
-
     const medals = ['🥇', '🥈', '🥉'];
     const rankClasses = ['top1', 'top2', 'top3'];
 
-    tbody.innerHTML = top.map((e, i) => {
+    tbody.innerHTML = entries.slice(0, 15).map((e, i) => {
       const rankDisp = i < 3 ? medals[i] : `#${i + 1}`;
       const rankClass = i < 3 ? rankClasses[i] : '';
-      const isHighlight = highlightName && e.name === highlightName && i === top.findIndex(x => x.name === highlightName);
+      const isHighlight = highlightName && e.name === highlightName;
       return `<tr class="${isHighlight ? 'lb-highlight' : ''}">
         <td class="lb-row-rank ${rankClass}">${rankDisp}</td>
         <td class="lb-row-name">${e.name}</td>
